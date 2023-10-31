@@ -7,76 +7,66 @@ entity exponentiation is
 		C_block_size : integer := 256
 	);
 	port (
-		--input controll
-		valid_in	: in STD_LOGIC;
-		ready_in	: out STD_LOGIC;
-
 		--input data
-		message 	: in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
-		key 		: in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
-		n         : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 ); 
-        K         : in STD_LOGIC_VECTOR(8 downto 0);
-
-		--ouput controll
-		ready_out	: in STD_LOGIC;
-		valid_out	: out STD_LOGIC;
-
-		--output data
-		result 		: out STD_LOGIC_VECTOR(C_block_size-1 downto 0);
-
-		--modulus
-		modulus 	: in STD_LOGIC_VECTOR(C_block_size-1 downto 0);
-
-		--utility
+		a             : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 ); 
+		b             : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 ); 
+		key 		  : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
+		n             : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 ); 
+        K             : in STD_LOGIC_VECTOR (7 downto 0);
+        enable        : in STD_LOGIC;
+        
+        --utility
 		clk 		: in STD_LOGIC;
-		reset_n 	: in STD_LOGIC
+		reset_n 	: in STD_LOGIC;
+		
+		--ouput controll
+		ready_out	: out STD_LOGIC;
+		--output data
+		result 		: out STD_LOGIC_VECTOR(C_block_size-1 downto 0)
 	);
 end exponentiation;
 
--- Invoke binary method to provide a and b from message m, or send it dircectly as input
-
 architecture expBehave of exponentiation is
     signal R                    :    std_logic_vector(C_block_size-1 downto 0);
-    signal a                    :    std_logic_vector(C_block_size-1 downto 0);
-    signal b                    :    std_logic_vector(C_block_size-1 downto 0);
-    
-begin
-     BLAKELY : process(sysclk) is
+    signal i                    :    unsigned(7 downto 0)  :=  "00000000";
 
-          variable bit_shift_pos               :    integer                             :=  0;
-          variable right_shift                 :    unsigned(8 downto 0)                :=  "0000";
-          variable i                           :    unsigned(8 downto 0)                :=  "0000";
-          variable a_multiply_en               :    unsigned(8 downto 0)                :=  "0000";
-          variable and_test                    :    unsigned(8 downto 0)                :=  "0001";
+begin
+     BLAKELY : process(clk, enable) is
+
+          variable bit_shift_pos               :    integer                                     :=  0;
+          variable right_shift                 :    std_logic_vector(C_block_size-1 downto 0)   := (others => '0');
+          variable and_operation               :    std_logic_vector(C_block_size-1 downto 0)   := (others => '0');
+          variable and_result                  :    std_logic_vector(C_block_size-1 downto 0)   := (others => '0');
           
           begin 
-               if rising_edge(sysclk) and k /= i then
-
+               
+               if rising_edge(clk) and enable = '1' then
+                    ready_out <= '0';
+                    
                     bit_shift_pos   := to_integer(unsigned(unsigned(K)-i-1));
-                    right_shift     := shift_right(unsigned(a), bit_shift_pos);
+                    right_shift     := std_logic_vector(shift_right(unsigned(a), bit_shift_pos));
+                    and_result      := std_logic_vector(unsigned(right_shift) and unsigned(and_operation));
                     
-                    and_test := right_shift and and_test;
-                    
-                    if(and_test = 0) then
-                        a_multiply_en := "0000";
-                    else 
-                        a_multiply_en := "0001";
+                    if(unsigned(and_result) = 1) then
+                        R <= std_logic_vector( unsigned(R) + unsigned(R) + unsigned(b) );
+                    else
+                        R <= std_logic_vector( unsigned(R) + unsigned(R));
                     end if;
-                      
-                    R <= std_logic_vector( unsigned(R) + unsigned(R) + a_multiply_en * unsigned(b));
                     
-                    if( unsigned(R) >= unsigned(n)) then
+                     if( unsigned(R) >= unsigned(n)) then
                          R <= std_logic_vector(unsigned(R) - unsigned(n));
+                    end if;
+                    
                     if( unsigned(R) >= unsigned(n)) then
                          R <= std_logic_vector(unsigned(R)-unsigned(n));
+                    end if;
 
-                    i := i + 1;
+                    i <= i + 1;
                     
-                end if;
-          end process BLAKELY;
+               end if;
+         end process BLAKELY;
           
          result <= R;
-         ready_in <= ready_out;
-         valid_out <= valid_in;
+         ready_out <= '1' when unsigned(K) = i;
         
 end expBehave;
