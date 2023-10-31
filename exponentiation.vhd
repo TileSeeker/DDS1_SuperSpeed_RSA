@@ -14,15 +14,10 @@ entity exponentiation is
 		n             : in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 ); 
         K             : in STD_LOGIC_VECTOR (7 downto 0);
         enable        : in STD_LOGIC;
-        
-        --utility
-		clk 		: in STD_LOGIC;
-		reset_n 	: in STD_LOGIC;
-		
-		--ouput controll
-		ready_out	: out STD_LOGIC;
-		--output data
-		result 		: out STD_LOGIC_VECTOR(C_block_size-1 downto 0)
+		clk 		  : in STD_LOGIC;
+		restart 	  : in STD_LOGIC;
+		ready_out	  : out STD_LOGIC;
+		result 		  : out STD_LOGIC_VECTOR(C_block_size-1 downto 0)
 	);
 end exponentiation;
 
