@@ -4,46 +4,91 @@ use ieee.numeric_std.all;
 
 entity binary is
 port(
-    rst:    in std_logic;
+    rst :   in std_logic;
     clk :   in std_logic;
-    e_msb_pos: in integer range 0 to 255 := 255;
-    M:      in std_logic_vector(255 downto 0);
-    N:      in std_logic_vector(255 downto 0);
-    e:      in std_logic_vector(255 downto 0);
-    C :     out std_logic_vector(255 downto 0));
+    en  :   in std_logic;
+    rdy :   out std_logic;
+    
+    M   :   in std_logic_vector(255 downto 0);
+    N   :   in std_logic_vector(255 downto 0);
+    e   :   in std_logic_vector(255 downto 0);
+    C   :   out std_logic_vector(255 downto 0));
 end binary;
 
 architecture rtl of binary is
 --signal i: integer range (e'length-1) to 0;
 --signal C_reg: std_logic_vector(255 downto 0);
+    signal count: integer range 256 downto 0 := 255;
+    signal run: std_logic := '0';
 
 begin
 
-binary: process(all)
-    --variable e_shift: std_logic_vector(e'length downto 0) := e;
-    --variable i_max: integer range 0 to 2*e'length := 2*e'length;
-    variable C_var: std_logic_vector(255 downto 0):= std_logic_vector (to_unsigned(1,C'length));
+main: process(all)
+    variable C_v: std_logic_vector(255 downto 0):= std_logic_vector (to_unsigned(1,C'length));
+    variable count_v: integer range 255 downto 0 := 255; 
+    variable run_v: std_logic := '0';
+    variable rdy_v: std_logic := '0';
+    
 begin
-    if rising_edge(rst) then
-        C <=(others => '0');
-    else
-        for i in (e'length-1) downto 0 loop
-            --report "i=" & integer'image(i);
-            if i = (e'length-1) then
-                --Set C to 1
-                C <= std_logic_vector(to_unsigned(1, C'length));  
-            end if;
-            
-            C_var := std_logic_vector((unsigned(C_var) * unsigned(C_var)));-- mod unsigned(e));
-            if e(i)='1' then
-                C_var := std_logic_vector((unsigned(C_var) * unsigned(M)));-- mod unsigned(e));
-            else
-                C_var := C_var;
-            end if;              
-        end loop;
-        C <= C_var;
+    --Reset Program
+    if (rst='1') then
+        C_v :=(others => '0');
+        run_v := '0';
+        rdy_v := '0';
+        
+    else 
+        C_v := C_v;
+        run_v := run_v;
+        if (rst'event and rst='0') then
+            rdy_v := '1';
+        else
+            rdy_v := rdy_v;
+        end if;
     end if;
     
-end process binary;
+    --Start Program
+    if ((en'event and en='1') and run='0' and rdy='1') then
+        run_v := '1';
+        rdy_v := '0';
+        
+        if e(C'length-1) = '1' then
+            C_v := M;    
+        else
+            C_v := std_logic_vector (to_unsigned(1,C'length));    
+        end if;
+        
+        count_v := C'length-2;
+    else
+        run_v := run_v;
+        rdy_v := rdy_v;
+        count_v := count_v;
+    end if;    
+    
+   --Algorithm
+   if rising_edge(clk) then
+        if  (run='1') then
+            if (count_v = 0) then
+                run_v := '0';
+                rdy_v := '1';
+            else 
+                C_v := std_logic_vector((unsigned(C) * unsigned(C)) mod unsigned(n));
+                if e(count-1) = '1' then
+                    C_v := std_logic_vector((unsigned(C_v) * unsigned(M)) mod unsigned(n));
+                else 
+                    C_v := C_v;
+                end if;   
+                count_v := count_v - 1;
+            end if;
+        else
+            C_v := C_v;
+            count_v := count_v;
+            rdy_v := rdy_v;
+        end if;
+   end if;
+   run <= run_v;
+   count <= count_v;  
+   C <= C_v;
+   rdy <= rdy_v;
+end process main;
 
 end rtl;

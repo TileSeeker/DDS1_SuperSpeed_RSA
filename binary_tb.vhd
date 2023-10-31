@@ -6,36 +6,52 @@ entity binary_tb is
 end entity;
 
 architecture tb of binary_tb is
-    signal rst:    std_logic := '0';
-    signal clk:    std_logic := '0';
-    signal e_msb_pos: integer range 0 to 255 := 255;
-    signal M:      std_logic_vector(255 downto 0) := (others=>'0');
-    signal N:      std_logic_vector(255 downto 0) := (others=>'0');
-    signal e:      std_logic_vector(255 downto 0) := (others=>'0');
-    signal C:      std_logic_vector(255 downto 0) := (others=>'0');
+    signal rst  :   std_logic := '0';
+    signal clk  :   std_logic := '0';
+    signal en   :   std_logic := '0';
+    signal rdy  :   std_logic := '0';
     
-    --constant freq: integer := 100e3;
-    --constant T: integer := 1/freq;
+    signal M    :   std_logic_vector(255 downto 0) := (others=>'0');
+    signal N    :   std_logic_vector(255 downto 0) := (others=>'0');
+    signal e    :   std_logic_vector(255 downto 0) := (others=>'0');
+    signal C    :   std_logic_vector(255 downto 0) := (others=>'0');
+    
+    constant freq: integer := 1e9;
+    constant T: time := 1sec/freq;
 begin
 DUT: entity work.binary(rtl)
     port map(
     rst => rst,
     clk =>clk,
+    en => en,
+    rdy => rdy,
     M => M,
     N => N,
     e => e,
     C => C);
     
-   clk <= not(clk) after 1 ns;
-   rst <= '1', '0' after 5ns;
-    
-    
+   clk <= not(clk) after T/2;
+   
    test: process is
    begin
-   wait until (rst = '0');
+   rst <= '0';
+   wait for 5 ns;
+   rst <= '1';
+   en <= '0';
+   wait for 5 ns;
+   rst <= '0';
+   wait for 5 ns;
+   
    M <= std_logic_vector(to_unsigned(50, M'length));
    e <= std_logic_vector(to_unsigned(17, e'length));
-   wait for 100 ns;   
+   n <= std_logic_vector(to_unsigned(143, n'length));
+   wait for 5ns;
+   en <= '1';
+   
+   
+   wait for 255*T;
+   assert (C = std_logic_vector(to_unsigned(85, C'length))) report "Test: Modulo Operation Result Error" severity failure;
+   
    assert false report "Test: OK" severity failure;
    end process test;
   
