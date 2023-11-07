@@ -22,21 +22,23 @@ architecture rtl of binary is
     signal run: std_logic := '0';
     
     signal a1, b1, a2, b2, R1, R2: std_logic_vector(255 downto 0):=(others=>'0');
+    signal rst_edge: std_logic_vector(1 downto 0);
 begin
+    rst_edge <= rst_edge(0) & rst;
 
     Blakley_1: entity work.blakley(rtl)
     port map(
-    a1 => a,
-    b1 => b,
-    n => N,
-    R1 => R);
+    a => a1,
+    b => b1,
+    N => n,
+    R => R1);
     
     Blakley_2: entity work.blakley(rtl)
     port map(
-    a2 => a,
-    b2 => b,
-    n => N,
-    R2 => R);
+    a  => a2,
+    b  => b2,
+    N  => n,
+    R  => R2);
 
 main: process(all)
     variable C_v: std_logic_vector(255 downto 0):= std_logic_vector (to_unsigned(1,C'length));
@@ -54,7 +56,7 @@ begin
     else 
         C_v := C_v;
         run_v := run_v;
-        if (rst'event and rst='0') then
+        if (rst_edge = "10") then --falling edge detect
             rdy_v := '1';
         else
             rdy_v := rdy_v;
@@ -62,7 +64,7 @@ begin
     end if;
     
     --Start Program
-    if ((en'event and en='1') and run='0' and rdy='1') then
+    if (en='1' and run='0' and rdy='1') then
         run_v := '1';
         rdy_v := '0';
         

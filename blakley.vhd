@@ -49,7 +49,7 @@ begin
         R_d <= R_c when a(i) = '1' else R_b;
         
         R_e <= std_logic_vector(unsigned(R_d) - unsigned(n));
-        R_f <= std_logic_vector(unsigned(R_d) - (2 * unsigned(n)));
+        R_f <= std_logic_vector(unsigned(R_d) - (unsigned(n) sll 1));
         
         index  <=   2 when (unsigned(R_d) >=  2 * unsigned(n)) else
                     1 when (unsigned(R_d) >=  unsigned(n)) else
