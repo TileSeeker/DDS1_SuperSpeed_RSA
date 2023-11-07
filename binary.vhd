@@ -20,8 +20,23 @@ architecture rtl of binary is
 --signal C_reg: std_logic_vector(255 downto 0);
     signal count: integer range 256 downto 0 := 255;
     signal run: std_logic := '0';
-
+    
+    signal a1, b1, a2, b2, R1, R2: std_logic_vector(255 downto 0):=(others=>'0');
 begin
+
+    Blakley_1: entity work.blakley(rtl)
+    port map(
+    a1 => a,
+    b1 => b,
+    n => N,
+    R1 => R);
+    
+    Blakley_2: entity work.blakley(rtl)
+    port map(
+    a2 => a,
+    b2 => b,
+    n => N,
+    R2 => R);
 
 main: process(all)
     variable C_v: std_logic_vector(255 downto 0):= std_logic_vector (to_unsigned(1,C'length));
