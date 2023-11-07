@@ -14,7 +14,6 @@ architecture tb of exponentiation_tb is
   
 	signal a 		    : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
 	signal b 		    : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
-	signal key 			: STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
    	signal n 			: STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
     signal K 			: STD_LOGIC_VECTOR ( 7 downto 0 );
 
@@ -25,14 +24,13 @@ architecture tb of exponentiation_tb is
 	signal reset 		: STD_LOGIC := '0';
 	signal enable       : STD_LOGIC := '0';
 	
-
+	
 begin
 	dut: entity work.exponentiation(expBehave) 
 	port map 
 	(
 			a         => a,
 			b         => b,
-			key       => key,
 			n         => n,
 			K         => K,
 			enable    => enable,
@@ -41,7 +39,7 @@ begin
 		    ready_out => ready_out,
 			result    => result
 	);
-		
+			
     p_CLK_GEN : process is
       begin
         wait for c_CLOCK_PERIOD/2;
@@ -50,27 +48,22 @@ begin
 		
     stimulus:
 	process begin
-	   n <= std_logic_vector(to_unsigned(143, n'length));
-	   key <= std_logic_vector(to_unsigned(17, key'length));
-	   K <= std_logic_vector(to_unsigned(36, k'length));
-	 
+	   n <= std_logic_vector(to_unsigned(123129, n'length));
+	   K <= std_logic_vector(to_unsigned(11, k'length));
+	  
 	   wait for 10 ns;
 
 	   enable <= '1';
 	   
 	   wait for 10 ns;
-
-	   a <= std_logic_vector(to_unsigned(123, a'length));
-	   b <= std_logic_vector(to_unsigned(123, b'length));
+	          
+	   a <= std_logic_vector(to_unsigned(1231, a'length));
+	   b <= std_logic_vector(to_unsigned(1221, b'length));
 	 
-	   wait for 1000 ns;
+	   wait;
 	   
-	   reset <= '1';
+	   --reset <= '1';
 	   
-	   wait for 1000 ns;
-	   
-	   reset <= '0';
-
 	end process stimulus;
 	   
 end tb;
