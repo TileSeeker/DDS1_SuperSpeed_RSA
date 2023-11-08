@@ -18,7 +18,6 @@ end binary;
 architecture rtl of binary is
 --signal i: integer range (e'length-1) to 0;
 --signal C_reg: std_logic_vector(255 downto 0);
-    signal count: integer range 256 downto 0 := 255;
     signal run: std_logic := '0';
     
     signal a1, b1, a2, b2, R1, R2: std_logic_vector(255 downto 0):=(others=>'0');
@@ -27,14 +26,67 @@ architecture rtl of binary is
     type state_type is (rdy_state, start_state, b1_start_state, b1_wait_state, b2_start_state, b2_wait_state, rst_state);
     signal state, next_state : state_type := rdy_state;
     
-    signal blakley_done: std_logic;
+    --Blakley IO signals
+    --In
+    signal blakley_start    : std_logic;
+    signal blakley_a        : std_logic_vector (C'length downto 0);
+    signal blakley_b        : std_logic_vector (C'length downto 0);
+    signal blakley_modulo   : std_logic_vector (N'length downto 0);   
+    signal blakley_a_msb    : std_logic_vector (7 downto 0)            := std_logic_vector(to_unsigned(255, 7));
+    
+    --Out
+    signal blakley_done     : std_logic;
+    signal blakley_out      : std_logic_vector (C'length downto 0);
+    
+    --Counter IO
+    signal counter_rst      : std_logic;
+    signal counter_dec      : std_logic;
+    signal counter_empty    : std_logic;
+    signal count            : integer range 256 downto 0;
+    
+    --e_index
+    signal e_index_value    : std_logic;    
     
 begin
+Blakley: entity work.blakely(blakelyBehave) 
+	port map 
+	(
+			a         => blakley_a,
+			b         => blakley_b,
+			n         => blakley_modulo,
+			K         => blakley_a_msb,
+			enable    => blakley_start,
+			clk       => clk,
+			reset     => rst,
+		    ready_out => blakley_done,
+			result    => blakley_out
+	);
+
+/*
+counter: process is
+begin
+if counter_rst = '1' then
+    counter_out = 0;
+else
+    if rising_edge(clk) then
+        if 
+    
+    end if;
+end if
+
+end process;
+*/
+
+--e_index_value assignment
+e_index_value <= e(count);
+
+
 
 FSM: process(all) is
 begin
 if rising_edge(clk) then
-    if      state = rdy_state then
+    case state is
+    when rdy_state =>
         rdy <= '1';
         
         if (en='1') then
@@ -43,26 +95,42 @@ if rising_edge(clk) then
             next_state <= next_state;
         end if;
     
-    elsif   state = start_state then
-        rdy <= '0';
-        count <= e'length;
-        C <= std_logic_vector(to_unsigned(1, C'length));
-    
-    elsif   state = b1_start_state then
+    when start_state =>
         rdy <= '0';
         
-    elsif   state = b1_wait_state then
+        --count <= e'length; Count Reset
+        C <= std_logic_vector(to_unsigned(1, C'length));
+        blakley_modulo <= N;
+    
+    when b1_start_state =>
+        rdy <= '0';
+        
+        blakley_a <= C;
+        blakley_b <= C;
+        blakley_start <= '1';
+
+        next_state <= b1_wait_state;
+        
+    when b1_wait_state =>
         rdy <= '0';
         if (blakley_done) then
-            next_state <= b2_start_state;
+            if(e_index_value) then
+                next_state <= b2_start_state;
+            else
+                next_state <= b1_start_state;
         else
             next_state <= next_state;
         end if;
     
-    elsif   state = b2_start_state then
+    when b2_start_state =>
         rdy <= '0';
+
+        blakley_a <= M;
+        blakley_b <= C;
+
+        next_state <= b1_wait_state;
     
-    elsif   state = b2_wait_state then
+    when b2_wait_state =>
         rdy <= '0';
         if (blakley_done) then
             if count=0 then
@@ -73,9 +141,11 @@ if rising_edge(clk) then
         else
             next_state <= next_state;
         end if;
-    
-    else
-    end if;
+        
+    when rst_state =>
+        rdy <= '0';    
+        
+    end case;
     
 end if;
 
