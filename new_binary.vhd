@@ -60,13 +60,13 @@ Blakley: entity work.blakely(blakelyBehave)
 			K         => blakley_a_msb,
 			enable    => blakley_start,
 			clk       => clk,
-			reset     => rst,
+			reset     => blakley_reset,
 		    ready_out => blakley_done,
 			result    => blakley_out
 	);
 
 
-counter: process(all) is
+counter: process(rst, clk) is
 variable counter_dec_trigger_v : std_logic_vector(1 downto 0) := (others => '0');
 begin
     if counter_rst = '1' then
@@ -104,7 +104,6 @@ begin
         when 2 =>
             C <= std_logic_vector(to_unsigned(1, C'length));
     end case;
-
 end process;
 
 
@@ -131,7 +130,7 @@ begin
             counter_dec     <= '0';
             a_input_select  <= '0';
             blakley_start   <= '0';
-            blakley_reset   <= '0';
+            blakley_reset   <= '1';
             c_reg_select    <=  2;
              
         
@@ -141,6 +140,7 @@ begin
             counter_dec     <= '1';
             a_input_select  <= '0';
             blakley_start   <= '1';
+            blakley_reset   <= '0';
             c_reg_select    <=  1;
         
         when b1_wait_state =>
