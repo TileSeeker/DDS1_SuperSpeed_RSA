@@ -29,14 +29,14 @@ architecture rtl of binary is
     --Blakley IO signals
     --In
     signal blakley_start    : std_logic;
-    signal blakley_a        : std_logic_vector (C'length downto 0);
-    signal blakley_b        : std_logic_vector (C'length downto 0);
-    signal blakley_modulo   : std_logic_vector (N'length downto 0);   
-    signal blakley_a_msb    : std_logic_vector (7 downto 0)            := std_logic_vector(to_unsigned(255, 7));
+    signal blakley_a        : std_logic_vector (C'length-1 downto 0);
+    signal blakley_b        : std_logic_vector (C'length-1 downto 0);
+    signal blakley_modulo   : std_logic_vector (N'length-1 downto 0);   
+    signal blakley_a_msb    : std_logic_vector (7 downto 0)            := std_logic_vector(to_unsigned(255, 8));
     
     --Out
     signal blakley_done     : std_logic;
-    signal blakley_out      : std_logic_vector (C'length downto 0);
+    signal blakley_out      : std_logic_vector (C'length-1 downto 0);
     
     --Counter IO
     signal counter_rst      : std_logic;
@@ -45,7 +45,8 @@ architecture rtl of binary is
     signal count            : integer range 256 downto 0;
     
     --e_index
-    signal e_index_value    : std_logic;    
+    signal e_index_value    : std_logic;
+    signal e_ext            : std_logic_vector(256 downto 0);    
     
 begin
 Blakley: entity work.blakely(blakelyBehave) 
@@ -62,97 +63,122 @@ Blakley: entity work.blakely(blakelyBehave)
 			result    => blakley_out
 	);
 
-/*
-counter: process is
-begin
-if counter_rst = '1' then
-    counter_out = 0;
-else
-    if rising_edge(clk) then
-        if 
-    
-    end if;
-end if
 
+counter: process(all) is
+variable counter_dec_trigger_v : std_logic_vector(1 downto 0) := (others => '0');
+begin
+    if counter_rst = '1' then
+        count <= 256;
+        counter_dec_trigger_v := "00";
+    else
+        if rising_edge(clk) then
+            counter_dec_trigger_v := counter_dec_trigger_v(0)&counter_dec;
+            if (counter_dec_trigger_v = "01") then
+                count <= count - 1;
+            else
+                count <= count;
+            end if;
+        end if;
+    end if;
 end process;
-*/
+
 
 --e_index_value assignment
-e_index_value <= e(count);
+e_ext <= ('0' & e);
+e_index_value <= e_ext(count);
+blakley_modulo <= N;
 
-
-
-FSM: process(all) is
+Output_Logic: process(all) is
 begin
-if rising_edge(clk) then
     case state is
-    when rdy_state =>
-        rdy <= '1';
+        when rdy_state =>
+            rdy <= '1';
+            counter_rst <= '0';
+            
+        when start_state =>
+            rdy <= '0';
+            counter_rst <= '1';
+            --count <= e'length; Count Reset
+            C <= std_logic_vector(to_unsigned(1, C'length));
+             
         
-        if (en='1') then
-            next_state <= start_state;
-        else
-            next_state <= next_state;
-        end if;
-    
-    when start_state =>
-        rdy <= '0';
+        when b1_start_state =>
+            counter_rst <= '0';
+            counter_dec <= '1';
+            
+            blakley_a <= C;
+            blakley_b <= C;
+            blakley_start <= '1';
         
-        --count <= e'length; Count Reset
-        C <= std_logic_vector(to_unsigned(1, C'length));
-        blakley_modulo <= N;
-    
-    when b1_start_state =>
-        rdy <= '0';
+        when b1_wait_state =>
+            counter_dec <= '0';
         
-        blakley_a <= C;
-        blakley_b <= C;
-        blakley_start <= '1';
-
-        next_state <= b1_wait_state;
+        when b2_start_state =>
+            
+            blakley_a <= M;
+            blakley_b <= C;
+            blakley_start <= '1';
         
-    when b1_wait_state =>
-        rdy <= '0';
-        if (blakley_done) then
-            if(e_index_value) then
-                next_state <= b2_start_state;
-            else
-                next_state <= b1_start_state;
-        else
-            next_state <= next_state;
-        end if;
-    
-    when b2_start_state =>
-        rdy <= '0';
-
-        blakley_a <= M;
-        blakley_b <= C;
-
-        next_state <= b1_wait_state;
-    
-    when b2_wait_state =>
-        rdy <= '0';
-        if (blakley_done) then
-            if count=0 then
-                next_state <= b1_start_state;
-            else
-                next_state <= rdy_state;
-            end if;
-        else
-            next_state <= next_state;
-        end if;
-        
-    when rst_state =>
-        rdy <= '0';    
-        
+        when b2_wait_state =>
+            
+        when rst_state =>
+            counter_dec <= '0';
+            counter_rst <= '0';
+            rdy<= '0';
+            
     end case;
-    
-end if;
-
-
 end process;
 
 
+Next_State_Logic: process(all) is
+begin
+    if rising_edge(clk) then
+        case state is
+        when rdy_state =>
+            if (en='1') then
+                next_state <= start_state;
+            else
+                next_state <= next_state;
+            end if;
+
+        when start_state =>
+            next_state <= b1_start_state;
+            
+            
+        when b1_start_state =>
+            next_state <= b1_wait_state;
+            
+        when b1_wait_state =>
+            if (blakley_done) then
+                if(e_index_value) then
+                    next_state <= b2_start_state;
+                else
+                    next_state <= b1_start_state;
+                end if;
+            else
+                next_state <= next_state;
+            end if;
+        
+        when b2_start_state =>
+            next_state <= b2_wait_state;
+        
+        when b2_wait_state =>
+            if (blakley_done) then
+                if count=0 then
+                    next_state <= b1_start_state;
+                else
+                    next_state <= rdy_state;
+                end if;
+            else
+                next_state <= next_state;
+            end if;
+            
+        when rst_state =>
+            next_state <= rdy_state;    
+        end case;
+        state <= next_state;
+    end if;
+end process;
 end rtl;
 
 /*

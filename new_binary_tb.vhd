@@ -16,8 +16,9 @@ architecture tb of binary_tb is
     signal e    :   std_logic_vector(255 downto 0) := (others=>'0');
     signal C    :   std_logic_vector(255 downto 0) := (others=>'0');
     
-    constant freq: integer := 1e9;
-    constant T: time := 1sec/freq;
+    --constant freq: integer := 1e10;
+    --constant T: time := 1sec/freq;
+    constant T: time := 100ps;
 begin
 DUT: entity work.binary(rtl)
     port map(
@@ -47,9 +48,11 @@ DUT: entity work.binary(rtl)
    n <= std_logic_vector(to_unsigned(143, n'length));
    wait for 5ns;
    en <= '1';
+    wait for 5ns;
    
    
-   wait for 255*T;
+   --wait for 2000*T;
+   wait until rdy='1';
    assert (C = std_logic_vector(to_unsigned(85, C'length))) report "Test: Modulo Operation Result Error" severity failure;
    
    assert false report "Test: OK" severity failure;
