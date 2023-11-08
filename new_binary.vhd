@@ -16,19 +16,22 @@ port(
 end binary;
 
 architecture rtl of binary is
---signal i: integer range (e'length-1) to 0;
---signal C_reg: std_logic_vector(255 downto 0);
-    signal run: std_logic := '0';
+    --signal run: std_logic := '0';
     
-    signal a1, b1, a2, b2, R1, R2: std_logic_vector(255 downto 0):=(others=>'0');
-    signal rst_edge: std_logic_vector(1 downto 0);
+    --signal a1, b1, a2, b2, R1, R2: std_logic_vector(255 downto 0):=(others=>'0');
+    --signal rst_edge: std_logic_vector(1 downto 0);
     
     type state_type is (rdy_state, start_state, b1_start_state, b1_wait_state, b2_start_state, b2_wait_state, rst_state);
     signal state, next_state : state_type := rdy_state;
     
+    
+    signal a_input_select   : std_logic;
+    signal c_reg_select     : integer range 2 downto 0;
     --Blakley IO signals
+    
     --In
     signal blakley_start    : std_logic;
+    signal blakley_reset    : std_logic;
     signal blakley_a        : std_logic_vector (C'length-1 downto 0);
     signal blakley_b        : std_logic_vector (C'length-1 downto 0);
     signal blakley_modulo   : std_logic_vector (N'length-1 downto 0);   
@@ -41,7 +44,6 @@ architecture rtl of binary is
     --Counter IO
     signal counter_rst      : std_logic;
     signal counter_dec      : std_logic;
-    signal counter_empty    : std_logic;
     signal count            : integer range 256 downto 0;
     
     --e_index
@@ -82,6 +84,29 @@ begin
     end if;
 end process;
 
+Blakley_a_input_select: process(all)
+begin
+    blakley_b <= C;
+    if (a_input_select='1') then
+        blakley_a <= M;
+    else
+        blakley_a <= C;
+    end if;
+end process;
+
+Reg_C_input_select: process(all)
+begin
+    case c_reg_select is
+        when 0 => 
+            C <= C;
+        when 1 =>
+            C <= blakley_out;
+        when 2 =>
+            C <= std_logic_vector(to_unsigned(1, C'length));
+    end case;
+
+end process;
+
 
 --e_index_value assignment
 e_ext <= ('0' & e);
@@ -93,38 +118,63 @@ begin
     case state is
         when rdy_state =>
             rdy <= '1';
-            counter_rst <= '0';
+            counter_rst     <= '0';
+            counter_dec     <= '0';
+            a_input_select  <= '0';
+            blakley_start   <= '0';
+            blakley_reset   <= '0';
+            c_reg_select    <=  0;
             
         when start_state =>
-            rdy <= '0';
-            counter_rst <= '1';
-            --count <= e'length; Count Reset
-            C <= std_logic_vector(to_unsigned(1, C'length));
+            rdy             <= '0';
+            counter_rst     <= '1';
+            counter_dec     <= '0';
+            a_input_select  <= '0';
+            blakley_start   <= '0';
+            blakley_reset   <= '0';
+            c_reg_select    <=  2;
              
         
         when b1_start_state =>
-            counter_rst <= '0';
-            counter_dec <= '1';
-            
-            blakley_a <= C;
-            blakley_b <= C;
-            blakley_start <= '1';
+            rdy             <= '0';
+            counter_rst     <= '0';
+            counter_dec     <= '1';
+            a_input_select  <= '0';
+            blakley_start   <= '1';
+            c_reg_select    <=  1;
         
         when b1_wait_state =>
-            counter_dec <= '0';
+            rdy             <= '0';
+            counter_rst     <= '0';
+            counter_dec     <= '0';
+            a_input_select  <= '0';
+            blakley_start   <= '0';
+            c_reg_select    <= 0;
         
         when b2_start_state =>
-            
-            blakley_a <= M;
-            blakley_b <= C;
-            blakley_start <= '1';
+            rdy             <= '0';
+            counter_rst     <= '0';
+            counter_dec     <= '0';            
+            a_input_select  <= '1';
+            blakley_start   <= '1';
+            c_reg_select    <=  1;
         
         when b2_wait_state =>
+            rdy             <= '0';
+            counter_rst     <= '0';
+            counter_dec     <= '0';            
+            a_input_select  <= '1';
+            blakley_start   <= '0';
+            c_reg_select    <=  0;
+            
             
         when rst_state =>
-            counter_dec <= '0';
-            counter_rst <= '0';
-            rdy<= '0';
+            rdy             <= '0';
+            counter_rst     <= '0';
+            counter_dec     <= '0';            
+            a_input_select  <= '0';
+            blakley_start   <= '0';
+            c_reg_select    <=  2;
             
     end case;
 end process;
@@ -149,7 +199,7 @@ begin
             next_state <= b1_wait_state;
             
         when b1_wait_state =>
-            if (blakley_done) then
+            if (blakley_done='1') then
                 if(e_index_value) then
                     next_state <= b2_start_state;
                 else
@@ -165,9 +215,9 @@ begin
         when b2_wait_state =>
             if (blakley_done) then
                 if count=0 then
-                    next_state <= b1_start_state;
-                else
                     next_state <= rdy_state;
+                else
+                    next_state <= b1_start_state;
                 end if;
             else
                 next_state <= next_state;

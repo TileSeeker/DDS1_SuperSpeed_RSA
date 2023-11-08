@@ -62,6 +62,8 @@ begin
 	 
 	   wait;
 	   
+	   assert false report "Test: OK" severity failure;
+	   
 	   --reset <= '1';
 	   
 	end process stimulus;
