@@ -74,6 +74,8 @@ begin
         
         
         wait for 10*T;
+        
+        assert (result = std_logic_vector(to_unsigned(85, result'length))) report "Test: Modulo Operation Result Error" severity failure;
         assert false report "Test: OK" severity failure;
     end process;
 
