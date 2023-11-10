@@ -21,7 +21,7 @@ architecture rtl of binary is
     --signal a1, b1, a2, b2, R1, R2: std_logic_vector(255 downto 0):=(others=>'0');
     --signal rst_edge: std_logic_vector(1 downto 0);
     
-    type state_type is (rdy_state, start_state, b1_start_state, b1_wait_state, b2_start_state, b2_wait_state, rst_state);
+    type state_type is (rdy_state, start_state, b1_start_state, b1_wait_state, b1_reset_state, b2_start_state, b2_wait_state, b2_reset_state, rst_state);
     signal state, next_state : state_type := rdy_state;
     
     
@@ -49,6 +49,9 @@ architecture rtl of binary is
     --e_index
     signal e_index_value    : std_logic;
     signal e_ext            : std_logic_vector(256 downto 0);    
+    
+    signal blakley_buffer     : std_logic_vector (C'length-1 downto 0);
+    signal blakley_buffer_write     : std_logic;
     
 begin
 Blakley: entity work.blakely(blakelyBehave) 
@@ -86,11 +89,11 @@ end process;
 
 Blakley_a_input_select: process(all)
 begin
-    blakley_b <= C;
+    blakley_b <= blakley_buffer;
     if (a_input_select='1') then
         blakley_a <= M;
     else
-        blakley_a <= C;
+        blakley_a <= blakley_buffer;
     end if;
 end process;
 
@@ -104,6 +107,15 @@ begin
         when 2 =>
             C <= std_logic_vector(to_unsigned(1, C'length));
     end case;
+end process;
+
+blakley_input_buffer: process(blakley_buffer_write)
+begin
+    if (blakley_buffer_write) then
+        blakley_buffer <= C;
+    else
+        blakley_buffer <= blakley_buffer;
+    end if;
 end process;
 
 
@@ -123,6 +135,7 @@ begin
             blakley_start   <= '0';
             blakley_reset   <= '0';
             c_reg_select    <=  0;
+            blakley_buffer_write <= '0';
             
         when start_state =>
             rdy             <= '0';
@@ -132,6 +145,7 @@ begin
             blakley_start   <= '0';
             blakley_reset   <= '1';
             c_reg_select    <=  2;
+            blakley_buffer_write <= '0';
              
         
         when b1_start_state =>
@@ -142,6 +156,7 @@ begin
             blakley_start   <= '1';
             blakley_reset   <= '0';
             c_reg_select    <=  1;
+            blakley_buffer_write <= '1';
         
         when b1_wait_state =>
             rdy             <= '0';
@@ -150,6 +165,17 @@ begin
             a_input_select  <= '0';
             blakley_start   <= '0';
             c_reg_select    <=  0;
+            blakley_buffer_write <= '0';
+            
+        when b1_reset_state =>
+            rdy             <= '0';
+            counter_rst     <= '0';
+            counter_dec     <= '0';
+            a_input_select  <= '0';
+            blakley_start   <= '0';
+            blakley_reset   <= '1';
+            c_reg_select    <=  0;
+            blakley_buffer_write <= '0';
         
         when b2_start_state =>
             rdy             <= '0';
@@ -157,7 +183,9 @@ begin
             counter_dec     <= '0';            
             a_input_select  <= '1';
             blakley_start   <= '1';
+            blakley_reset   <= '0';
             c_reg_select    <=  1;
+            blakley_buffer_write <= '1';
         
         when b2_wait_state =>
             rdy             <= '0';
@@ -165,7 +193,19 @@ begin
             counter_dec     <= '0';            
             a_input_select  <= '1';
             blakley_start   <= '0';
+            blakley_reset   <= '0';
             c_reg_select    <=  0;
+            blakley_buffer_write <= '0';
+            
+        when b2_reset_state =>
+            rdy             <= '0';
+            counter_rst     <= '0';
+            counter_dec     <= '0';
+            a_input_select  <= '0';
+            blakley_start   <= '0';
+            blakley_reset   <= '1';
+            c_reg_select    <=  0;
+            blakley_buffer_write <= '0';
             
             
         when rst_state =>
@@ -174,7 +214,9 @@ begin
             counter_dec     <= '0';            
             a_input_select  <= '0';
             blakley_start   <= '0';
+            blakley_reset   <= '1';
             c_reg_select    <=  2;
+            blakley_buffer_write <= '0';
             
     end case;
 end process;
@@ -200,27 +242,36 @@ begin
             
         when b1_wait_state =>
             if (blakley_done='1') then
-                if(e_index_value) then
-                    next_state <= b2_start_state;
-                else
-                    next_state <= b1_start_state;
-                end if;
+                next_state <= b1_reset_state;
             else
                 next_state <= next_state;
             end if;
         
+        when b1_reset_state =>
+            if(e_index_value) then
+                next_state <= b2_start_state;
+            else
+                next_state <= b1_start_state;
+            end if;
+            
+        
         when b2_start_state =>
             next_state <= b2_wait_state;
+            
+
         
         when b2_wait_state =>
             if (blakley_done) then
-                if count=0 then
-                    next_state <= rdy_state;
-                else
-                    next_state <= b1_start_state;
-                end if;
+                next_state <= b2_reset_state;
             else
                 next_state <= next_state;
+            end if;
+            
+        when b2_reset_state =>
+            if count=0 then
+                next_state <= rdy_state;
+            else
+                next_state <= b1_start_state;
             end if;
             
         when rst_state =>
