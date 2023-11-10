@@ -29,8 +29,8 @@ architecture blakelyBehave of blakely is
     type State_Type is (idle, encrypt);
     signal current_state, next_state : State_Type;
            
-    constant C_FILE_NAME :string  := "C:\tfe4141_rsa_integration_kit_2023\Exponentiation\output.txt";
-    file fptr: text;
+    --constant C_FILE_NAME :string  := "C:\tfe4141_rsa_integration_kit_2023\Exponentiation\output.txt";
+    --file fptr: text;
     
 begin
 
@@ -70,8 +70,8 @@ begin
       variable and_result            :    std_logic_vector(C_block_size-1 downto 0)   := (others => '0');
       variable R                     :    std_logic_vector(C_block_size-1 downto 0)   := (others => '0');
       
-      variable fstatus      :file_open_status;
-      variable file_line     :line;
+      --variable fstatus      :file_open_status;
+      --variable file_line     :line;
 
       begin 
             case(current_state) is
@@ -85,11 +85,11 @@ begin
                         elsif(i = unsigned(K)) then
                              result <= R;
                              blakely_done <= '1';
-                             file_close(fptr);
+                             --file_close(fptr);
                         else
-                            file_open(fstatus, fptr, C_FILE_NAME, append_mode);
-                            hwrite(file_line, R, left, 0);
-                            writeline(fptr, file_line);
+                            --file_open(fstatus, fptr, C_FILE_NAME, append_mode);
+                            --hwrite(file_line, R, left, 0);
+                            --writeline(fptr, file_line);
                         
                             bit_shift_pos   := to_integer(unsigned(unsigned(K)-i-1));
                             right_shift     := std_logic_vector(shift_right(unsigned(a), bit_shift_pos));
