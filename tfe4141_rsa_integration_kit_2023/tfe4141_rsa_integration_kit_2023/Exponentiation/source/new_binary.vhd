@@ -4,7 +4,7 @@ use ieee.numeric_std.all;
 
 entity binary is
 	generic (
-		block_size : integer := 256
+		block_size : integer := 260
 	);
 port(
     rst :   in std_logic;
@@ -34,7 +34,7 @@ architecture rtl of binary is
     signal blakley_a        : std_logic_vector (block_size-1 downto 0);
     signal blakley_b        : std_logic_vector (block_size-1 downto 0);
     signal blakley_modulo   : std_logic_vector (block_size-1 downto 0);   
-    signal blakley_a_msb    : std_logic_vector (7 downto 0)            := std_logic_vector(to_unsigned(block_size-1, 8));
+    signal blakley_a_msb    : std_logic_vector (15 downto 0)            := std_logic_vector(to_unsigned(block_size-1, 16));
     
     --Out
     signal blakley_done     : std_logic;

@@ -4,7 +4,7 @@ use ieee.numeric_std.all;
 
 entity binary_tb is
 	generic (
-		block_size : integer := 256
+		block_size : integer := 260
 	);
 end entity;
 

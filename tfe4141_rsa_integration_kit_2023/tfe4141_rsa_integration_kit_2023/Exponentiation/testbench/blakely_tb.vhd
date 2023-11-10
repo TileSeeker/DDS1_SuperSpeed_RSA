@@ -2,9 +2,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+use STD.textio.all;
+use ieee.std_logic_textio.all;
+
 entity blakely_tb is
  generic (
-		C_block_size : integer := 256
+		C_block_size : integer := 260
 	);
 end blakely_tb;
 
@@ -15,7 +18,7 @@ architecture tb of blakely_tb is
 	signal a 		    : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
 	signal b 		    : STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
    	signal n 			: STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
-    signal K 			: STD_LOGIC_VECTOR ( 7 downto 0 );
+    signal K 			: STD_LOGIC_VECTOR ( 15 downto 0 );
 
 	signal ready_out 	: STD_LOGIC;
 	signal result 		: STD_LOGIC_VECTOR(C_block_size-1 downto 0);
@@ -23,7 +26,6 @@ architecture tb of blakely_tb is
 	signal clk 			: STD_LOGIC := '0';
 	signal reset 		: STD_LOGIC := '0';
 	signal enable       : STD_LOGIC := '0';
-	
 	
 begin
 	dut: entity work.blakely(blakelyBehave) 
@@ -46,26 +48,30 @@ begin
         clk <= not clk;
       end process p_CLK_GEN; 
 		
-    stimulus:
-	process begin
-	   n <= std_logic_vector(to_unsigned(123129, n'length));
-	   K <= std_logic_vector(to_unsigned(11, k'length));
-	  
+    stimulus: process is
+              
+     begin
+	   
+	   n <= x"099925173ad65686715385ea800cd28120288fc70a9bc98dd4c90d676f8ff768d"; --std_logic_vector(to_unsigned(123129, n'length));
+	   K <= std_logic_vector(to_unsigned(C_block_size, k'length));
+	   
+	   a <= x"00a23232323232323232323232323232323232323232323232323232323232323"; --std_logic_vector(to_unsigned(1, a'length));
+	   b <= x"00a23232323232323232323232323232323232323232323232323232323232323"; --std_logic_vector(to_unsigned(1, b'length));
+	
 	   wait for 10 ns;
 
 	   enable <= '1';
+	   	          
+	   wait until ready_out='1';
+	  	   
+	   wait for 100 ns;
 	   
-	   wait for 10 ns;
-	          
-	   a <= std_logic_vector(to_unsigned(1231, a'length));
-	   b <= std_logic_vector(to_unsigned(1221, b'length));
-	 
-	   wait;
+	   reset <= '1';
+
+	   wait for 100 ns;
 	   
-	   assert false report "Test: OK" severity failure;
-	   
-	   --reset <= '1';
-	   
+	   reset <= '0';
+    	   
 	end process stimulus;
 	   
 end tb;
