@@ -51,7 +51,6 @@ architecture rtl of binary is
     signal e_ext            : std_logic_vector(256 downto 0);    
     
     signal blakley_buffer     : std_logic_vector (C'length-1 downto 0);
-    signal test_buffer : std_logic_vector (C'length-1 downto 0);
     signal blakley_buffer_write: std_logic;
     
 begin
@@ -70,7 +69,7 @@ Blakley: entity work.blakely(blakelyBehave)
 	);
 
 
-counter: process(rst, clk) is
+counter: process(counter_rst, clk) is
 variable counter_dec_trigger_v : std_logic_vector(1 downto 0) := (others => '0');
 begin
     if counter_rst = '1' then
@@ -88,17 +87,19 @@ begin
     end if;
 end process;
 
-Blakley_a_input_select: process(all)
+Blakley_a_input_select: process(clk)
 begin
+if rising_edge (clk) then
     blakley_b <= blakley_buffer;
     if (a_input_select='1') then
         blakley_a <= M;
     else
         blakley_a <= blakley_buffer;
     end if;
+end if;
 end process;
 
-Reg_C_input_select: process(clk, c_reg_select)
+Reg_C_input_select: process(clk)
 begin
     if rising_edge(clk) then
     case c_reg_select is
@@ -113,15 +114,15 @@ begin
 end process;
 
 
-blakley_input_buffer: process(all) is
+blakley_input_buffer: process(clk) is
 begin 
-
+    if rising_edge(clk) then
         if (blakley_buffer_write='1') then
             blakley_buffer <= C;
         else
             blakley_buffer <= blakley_buffer;
         end if;
-
+    end if;
 end process;
 
 --blakley_buffer <= C when blakley_buffer_write='0' else blakley_buffer;
@@ -132,19 +133,26 @@ e_ext <= ('0' & e);
 e_index_value <= e_ext(count);
 blakley_modulo <= N;
 
-Output_Logic: process(all) is
+Output_Logic: process(state) is
 begin
-    
+    rdy <= '0';
+    counter_rst     <= '0';
+    counter_dec     <= '0';
+    a_input_select  <= '0';
+    blakley_start   <= '0';
+    blakley_reset   <= '0';
+    c_reg_select    <=  0;
+    blakley_buffer_write <= '0';
     case state is  
         when rdy_state =>
             rdy <= '1';
-            counter_rst     <= '0';
-            counter_dec     <= '0';
-            a_input_select  <= '0';
-            blakley_start   <= '0';
-            blakley_reset   <= '0';
-            c_reg_select    <=  0;
-            blakley_buffer_write <= '0';
+            --counter_rst     <= '0';
+            --counter_dec     <= '0';
+            --a_input_select  <= '0';
+            --blakley_start   <= '0';
+            --blakley_reset   <= '0';
+            --c_reg_select    <=  0;
+            --blakley_buffer_write <= '0';
             
         when start_state =>
             rdy             <= '0';
@@ -232,62 +240,66 @@ begin
 end process;
 
 
-Next_State_Logic: process(all) is
+Next_State_Logic: process(rst, clk) is
 begin
-    if rising_edge(clk) then
-        case state is
-        when rdy_state =>
-            if (en='1') then
-                next_state <= start_state;
-            else
-                next_state <= next_state;
-            end if;
-
-        when start_state =>
-            next_state <= b1_start_state;
-            
-            
-        when b1_start_state =>
-            next_state <= b1_wait_state;
-            
-        when b1_wait_state =>
-            if (blakley_done='1') then
-                next_state <= b1_reset_state;
-            else
-                next_state <= next_state;
-            end if;
-        
-        when b1_reset_state =>
-            if(e_index_value) then
-                next_state <= b2_start_state;
-            else
+    if rst then
+        next_state <= rst_state;
+    else
+        if rising_edge(clk) then
+            case state is
+            when rdy_state =>
+                if (en='1') then
+                    next_state <= start_state;
+                else
+                    next_state <= next_state;
+                end if;
+    
+            when start_state =>
                 next_state <= b1_start_state;
-            end if;
+                
+                
+            when b1_start_state =>
+                next_state <= b1_wait_state;
+                
+            when b1_wait_state =>
+                if (blakley_done='1') then
+                    next_state <= b1_reset_state;
+                else
+                    next_state <= next_state;
+                end if;
             
-        
-        when b2_start_state =>
-            next_state <= b2_wait_state;
+            when b1_reset_state =>
+                if(e_index_value) then
+                    next_state <= b2_start_state;
+                else
+                    next_state <= b1_start_state;
+                end if;
+                
             
-
-        
-        when b2_wait_state =>
-            if (blakley_done) then
-                next_state <= b2_reset_state;
-            else
-                next_state <= next_state;
-            end if;
+            when b2_start_state =>
+                next_state <= b2_wait_state;
+                
+    
             
-        when b2_reset_state =>
-            if count=0 then
-                next_state <= rdy_state;
-            else
-                next_state <= b1_start_state;
-            end if;
-            
-        when rst_state =>
-            next_state <= rdy_state;    
-        end case;
-        state <= next_state;
+            when b2_wait_state =>
+                if (blakley_done) then
+                    next_state <= b2_reset_state;
+                else
+                    next_state <= next_state;
+                end if;
+                
+            when b2_reset_state =>
+                if count=0 then
+                    next_state <= rdy_state;
+                else
+                    next_state <= b1_start_state;
+                end if;
+                
+            when rst_state =>
+                next_state <= rdy_state;    
+            end case;
+            state <= next_state;
+        end if;
     end if;
 end process;
 end rtl;

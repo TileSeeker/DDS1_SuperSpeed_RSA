@@ -54,5 +54,4 @@ begin
     e  => key,
     C  => result);
 	
-	
 end expBehave;

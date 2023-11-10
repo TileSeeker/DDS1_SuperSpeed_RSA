@@ -63,8 +63,12 @@ begin
         wait for 1*T;
         reset_n <= '1';
         
-        wait until ready_in;
+        if not(ready_in) then
+            wait until ready_in;
+        end if;
+        
         valid_in <= '1';
+        wait for 5*T;
         wait until ready_in;
         
         
