@@ -26,8 +26,8 @@ architecture expBehave of exponentiation_tb is
     
     constant freq       : integer := 1e9;
     constant T          : time    := 1sec/freq;  
-    
-begin
+    begin
+
 	i_exponentiation : entity work.exponentiation
 		port map (
 			message   => message  ,
@@ -72,10 +72,34 @@ begin
         valid_in <= '0';
         wait until ready_in;
         
+        message     <= result;
+        key         <= std_logic_vector(to_unsigned(113, key'length));
+        modulus     <= std_logic_vector(to_unsigned(143, modulus'length));
         
+        valid_in    <= '0';
+        
+        wait for 1*T;
+        reset_n <= '0';
+        wait for 1*T;
+        reset_n <= '1';
+        
+        if not(ready_in) then
+            wait until ready_in;
+        end if;
+        
+        valid_in <= '1';
+        wait for 5*T;
+        valid_in <= '0';
+        wait until ready_in;
+     
         wait for 10*T;
         
-        assert (result = std_logic_vector(to_unsigned(85, result'length))) report "Test: Modulo Operation Result Error" severity failure;
+        assert (result = std_logic_vector(to_unsigned(50, result'length))) report "Test: Modulo Operation Result Error" severity failure;
+        
+        
+
+
+        
         assert false report "Test: OK" severity failure;
     end process;
 

@@ -41,6 +41,7 @@ begin
 	--valid_out <= valid_in;
 	
 	rst <= not(reset_n);
+	valid_out <= ready_in;
 	
 	Binary: entity work.binary(rtl)
 	port map(

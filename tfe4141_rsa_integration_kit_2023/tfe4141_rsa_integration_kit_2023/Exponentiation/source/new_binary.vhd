@@ -3,24 +3,23 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity binary is
+	generic (
+		block_size : integer := 256
+	);
 port(
     rst :   in std_logic;
     clk :   in std_logic;
     en  :   in std_logic;
     rdy :   out std_logic;
     
-    M   :   in std_logic_vector(255 downto 0);
-    N   :   in std_logic_vector(255 downto 0);
-    e   :   in std_logic_vector(255 downto 0);
-    C   :   out std_logic_vector(255 downto 0));
+    M   :   in std_logic_vector(block_size-1 downto 0);
+    N   :   in std_logic_vector(block_size-1 downto 0);
+    e   :   in std_logic_vector(block_size-1 downto 0);
+    C   :   out std_logic_vector(block_size-1 downto 0));
 end binary;
 
 architecture rtl of binary is
-    --signal run: std_logic := '0';
-    
-    --signal a1, b1, a2, b2, R1, R2: std_logic_vector(255 downto 0):=(others=>'0');
-    --signal rst_edge: std_logic_vector(1 downto 0);
-    
+
     type state_type is (rdy_state, start_state, b1_init_state, b1_start_state, b1_wait_state, b1_reset_state, b2_init_state, b2_start_state, b2_wait_state, b2_reset_state, rst_state);
     signal state, next_state : state_type := rdy_state;
     
@@ -32,25 +31,25 @@ architecture rtl of binary is
     --In
     signal blakley_start    : std_logic;
     signal blakley_reset    : std_logic;
-    signal blakley_a        : std_logic_vector (C'length-1 downto 0);
-    signal blakley_b        : std_logic_vector (C'length-1 downto 0);
-    signal blakley_modulo   : std_logic_vector (N'length-1 downto 0);   
-    signal blakley_a_msb    : std_logic_vector (7 downto 0)            := std_logic_vector(to_unsigned(255, 8));
+    signal blakley_a        : std_logic_vector (block_size-1 downto 0);
+    signal blakley_b        : std_logic_vector (block_size-1 downto 0);
+    signal blakley_modulo   : std_logic_vector (block_size-1 downto 0);   
+    signal blakley_a_msb    : std_logic_vector (7 downto 0)            := std_logic_vector(to_unsigned(block_size-1, 8));
     
     --Out
     signal blakley_done     : std_logic;
-    signal blakley_out      : std_logic_vector (C'length-1 downto 0);
+    signal blakley_out      : std_logic_vector (block_size-1 downto 0);
     
     --Counter IO
     signal counter_rst      : std_logic;
     signal counter_dec      : std_logic;
-    signal count            : integer range 256 downto 0;
+    signal count            : integer range block_size downto 0;
     
     --e_index
     signal e_index_value    : std_logic;
-    signal e_ext            : std_logic_vector(256 downto 0);    
+    signal e_ext            : std_logic_vector(block_size downto 0);    
     
-    signal blakley_buffer     : std_logic_vector (C'length-1 downto 0);
+    signal blakley_buffer     : std_logic_vector (block_size-1 downto 0);
     signal blakley_buffer_write: std_logic;
     
 begin
@@ -73,7 +72,7 @@ counter: process(counter_rst, clk) is
 variable counter_dec_trigger_v : std_logic_vector(1 downto 0) := (others => '0');
 begin
     if counter_rst = '1' then
-        count <= 256;
+        count <= block_size;
         counter_dec_trigger_v := "00";
     else
         if rising_edge(clk) then
@@ -106,7 +105,7 @@ begin
         when 1 =>
             C <= blakley_out;
         when 2 =>
-            C <= std_logic_vector(to_unsigned(1, C'length));
+            C <= std_logic_vector(to_unsigned(1, block_size));
         when others =>
             C <= C;
     end case;
