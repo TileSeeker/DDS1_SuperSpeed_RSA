@@ -1,16 +1,17 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use std.textio.all;
 
 entity blakely is
 	generic (
-		C_block_size : integer := 256
+		C_block_size : integer := 260
 	);
 	port (
 		a             : in  STD_LOGIC_VECTOR ( C_block_size-1 downto 0 ); 
 		b             : in  STD_LOGIC_VECTOR ( C_block_size-1 downto 0 ); 
 		n             : in  STD_LOGIC_VECTOR ( C_block_size-1 downto 0 ); 
-        K             : in  STD_LOGIC_VECTOR ( 7 downto 0);
+        K             : in  STD_LOGIC_VECTOR ( 15 downto 0);
         enable        : in  STD_LOGIC;
 		clk 		  : in  STD_LOGIC;
 		reset 	      : in  STD_LOGIC;
@@ -22,13 +23,15 @@ end blakely;
 
 architecture blakelyBehave of blakely is
 
-    signal i                                                 :    unsigned(7 downto 0)  :=  "00000000";
-    
-    signal blakely_done : STD_LOGIC := '0';
+    signal i            : unsigned(15 downto 0)  := (others => '0');
+    signal blakely_done : STD_LOGIC             := '0';
     
     type State_Type is (idle, encrypt);
     signal current_state, next_state : State_Type;
            
+    constant C_FILE_NAME :string  := "C:\tfe4141_rsa_integration_kit_2023\Exponentiation\output.txt";
+    file fptr: text;
+    
 begin
 
     ------------------------------------------------------------------------------
@@ -38,7 +41,6 @@ begin
             current_state <= idle;
         elsif (clk ='1') then
             current_state <= next_state;
-        
         end if;
      end process STATE_MEMORY;
     ------------------------------------------------------------------------------
@@ -68,6 +70,9 @@ begin
       variable and_result            :    std_logic_vector(C_block_size-1 downto 0)   := (others => '0');
       variable R                     :    std_logic_vector(C_block_size-1 downto 0)   := (others => '0');
       
+      variable fstatus      :file_open_status;
+      variable file_line     :line;
+
       begin 
             case(current_state) is
       
@@ -75,12 +80,17 @@ begin
                         if(reset = '1') then
                             R := (others => '0');
                             result <= R;
-                            i <= "00000000";
+                            i <= (others => '0');
                             blakely_done <= '0';
                         elsif(i = unsigned(K)) then
                              result <= R;
                              blakely_done <= '1';
+                             file_close(fptr);
                         else
+                            file_open(fstatus, fptr, C_FILE_NAME, append_mode);
+                            hwrite(file_line, R, left, 0);
+                            writeline(fptr, file_line);
+                        
                             bit_shift_pos   := to_integer(unsigned(unsigned(K)-i-1));
                             right_shift     := std_logic_vector(shift_right(unsigned(a), bit_shift_pos));
                             and_result      := std_logic_vector(unsigned(right_shift) and unsigned(and_operation));
@@ -98,16 +108,18 @@ begin
                             if( unsigned(R) >= unsigned(n)) then
                                  R := std_logic_vector(unsigned(R) - unsigned(n));
                             end if;
+                            
                   
                             if ( i /= unsigned(K)) then
                                i <= i + 1;   
-                            end if;     
+                            end if;   
+                                                          
                        end if;
                     
              when idle =>
                  if(reset = '1') then
                     R := (others => '0');
-                    i <= "00000000";
+                    i <= (others => '0');
                     blakely_done <= '0';
                  end if;
            
