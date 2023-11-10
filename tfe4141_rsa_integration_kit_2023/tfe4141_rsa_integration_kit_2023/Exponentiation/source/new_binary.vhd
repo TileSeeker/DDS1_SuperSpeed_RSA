@@ -112,7 +112,7 @@ begin
     end if;
 end process;
 
-/*
+
 blakley_input_buffer: process(all) is
 begin 
 
@@ -121,14 +121,12 @@ begin
         else
             blakley_buffer <= blakley_buffer;
         end if;
-        
-        blakley_buffer <= C;
 
-end process;*/
+end process;
 
 --blakley_buffer <= C when blakley_buffer_write='0' else blakley_buffer;
-blakley_buffer <= (others=>'0');
-test_buffer <= (others=>'0');
+--blakley_buffer <= (others=>'0');
+--test_buffer <= (others=>'0');
 --e_index_value assignment
 e_ext <= ('0' & e);
 e_index_value <= e_ext(count);
