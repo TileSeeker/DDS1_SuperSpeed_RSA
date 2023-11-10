@@ -69,6 +69,7 @@ begin
         
         valid_in <= '1';
         wait for 5*T;
+        valid_in <= '0';
         wait until ready_in;
         
         

@@ -36,7 +36,7 @@ architecture expBehave of exponentiation is
 signal rst: std_logic;
 
 begin
-	result <= message xor modulus;
+	--result <= message xor modulus;
 	--ready_in <= ready_out;
 	--valid_out <= valid_in;
 	
