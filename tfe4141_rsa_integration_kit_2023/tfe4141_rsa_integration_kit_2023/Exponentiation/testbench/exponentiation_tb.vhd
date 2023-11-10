@@ -5,7 +5,7 @@ use ieee.numeric_std .all;
 
 entity exponentiation_tb is
 	generic (
-		C_block_size : integer := 256
+		C_block_size : integer := 260
 	);
 end exponentiation_tb;
 
