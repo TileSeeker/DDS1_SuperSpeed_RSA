@@ -1,5 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity exponentiation is
 	generic (
@@ -32,8 +33,26 @@ end exponentiation;
 
 
 architecture expBehave of exponentiation is
+signal rst: std_logic;
+
 begin
 	result <= message xor modulus;
-	ready_in <= ready_out;
-	valid_out <= valid_in;
+	--ready_in <= ready_out;
+	--valid_out <= valid_in;
+	
+	rst <= not(reset_n);
+	
+	Binary: entity work.binary(rtl)
+	port map(
+    rst => rst,
+    clk => clk,
+    en  => valid_in,
+    rdy => ready_in,
+    
+    M  => Message,
+    N  => Modulus,
+    e  => key,
+    C  => result);
+	
+	
 end expBehave;
