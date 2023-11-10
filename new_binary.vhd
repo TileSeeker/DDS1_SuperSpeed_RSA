@@ -51,7 +51,8 @@ architecture rtl of binary is
     signal e_ext            : std_logic_vector(256 downto 0);    
     
     signal blakley_buffer     : std_logic_vector (C'length-1 downto 0);
-    signal blakley_buffer_write     : std_logic;
+    signal test_buffer : std_logic_vector (C'length-1 downto 0);
+    signal blakley_buffer_write: std_logic;
     
 begin
 Blakley: entity work.blakely(blakelyBehave) 
@@ -97,28 +98,37 @@ begin
     end if;
 end process;
 
-Reg_C_input_select: process(all)
+Reg_C_input_select: process(clk, c_reg_select)
 begin
+    if rising_edge(clk) then
     case c_reg_select is
-        when 0 => 
-            C <= C;
         when 1 =>
             C <= blakley_out;
         when 2 =>
             C <= std_logic_vector(to_unsigned(1, C'length));
+        when others =>
+            C <= C;
     end case;
-end process;
-
-blakley_input_buffer: process(blakley_buffer_write)
-begin
-    if (blakley_buffer_write) then
-        blakley_buffer <= C;
-    else
-        blakley_buffer <= blakley_buffer;
     end if;
 end process;
 
+/*
+blakley_input_buffer: process(all) is
+begin 
 
+        if (blakley_buffer_write='1') then
+            blakley_buffer <= C;
+        else
+            blakley_buffer <= blakley_buffer;
+        end if;
+        
+        blakley_buffer <= C;
+
+end process;*/
+
+--blakley_buffer <= C when blakley_buffer_write='0' else blakley_buffer;
+blakley_buffer <= (others=>'0');
+test_buffer <= (others=>'0');
 --e_index_value assignment
 e_ext <= ('0' & e);
 e_index_value <= e_ext(count);
@@ -126,7 +136,8 @@ blakley_modulo <= N;
 
 Output_Logic: process(all) is
 begin
-    case state is
+    
+    case state is  
         when rdy_state =>
             rdy <= '1';
             counter_rst     <= '0';
@@ -155,7 +166,7 @@ begin
             a_input_select  <= '0';
             blakley_start   <= '1';
             blakley_reset   <= '0';
-            c_reg_select    <=  1;
+            c_reg_select    <=  0;
             blakley_buffer_write <= '1';
         
         when b1_wait_state =>
@@ -164,7 +175,8 @@ begin
             counter_dec     <= '0';
             a_input_select  <= '0';
             blakley_start   <= '0';
-            c_reg_select    <=  0;
+            blakley_reset   <= '0';
+            c_reg_select    <=  1;
             blakley_buffer_write <= '0';
             
         when b1_reset_state =>
@@ -184,7 +196,7 @@ begin
             a_input_select  <= '1';
             blakley_start   <= '1';
             blakley_reset   <= '0';
-            c_reg_select    <=  1;
+            c_reg_select    <=  0;
             blakley_buffer_write <= '1';
         
         when b2_wait_state =>
@@ -194,7 +206,7 @@ begin
             a_input_select  <= '1';
             blakley_start   <= '0';
             blakley_reset   <= '0';
-            c_reg_select    <=  0;
+            c_reg_select    <=  1;
             blakley_buffer_write <= '0';
             
         when b2_reset_state =>

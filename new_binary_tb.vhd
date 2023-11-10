@@ -18,7 +18,7 @@ architecture tb of binary_tb is
     
     --constant freq: integer := 1e10;
     --constant T: time := 1sec/freq;
-    constant T: time := 100ps;
+    constant T: time := 1ns;
 begin
 DUT: entity work.binary(rtl)
     port map(
