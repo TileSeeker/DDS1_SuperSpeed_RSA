@@ -63,6 +63,7 @@ begin
 	   enable <= '1';
 	   	          
 	   wait until ready_out='1';
+	   assert result = x"024931802b9ead447563ec7f0f3d613270a5dd5f3d3df1457b9857de14da1a750" report "Blakley Calc Failed!" severity failure;
 	  	   
 	   wait for 100 ns;
 	   
@@ -71,7 +72,9 @@ begin
 	   wait for 100 ns;
 	   
 	   reset <= '0';
+	   
     	   
+       assert false report "Test: OK" severity failure;
 	end process stimulus;
 	   
 end tb;
