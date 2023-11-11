@@ -69,6 +69,7 @@ architecture expBehave of exponentiation_tb is
         valid_in <= '0';    wait for T;
         wait until valid_out;
         
+        --Set Encrypted message in and private key
         message     <= result;
         key         <= std_logic_vector(to_unsigned(113, key'length));
         
@@ -80,13 +81,43 @@ architecture expBehave of exponentiation_tb is
         valid_in <= '0';    wait for T;
         
         wait until valid_out;
-     
-        wait for 10*T;
+        wait for T;
         
         assert (result = std_logic_vector(to_unsigned(50, result'length))) report "Test: Modulo Operation Result Error" severity failure;
         
         
+        --message     <= x"b64ce14712586ff4e5aa50459bc31d1c3cf7e94727067505189bc67be52baad9";
+        message     <= std_logic_vector(to_unsigned(50, result'length));
+        key         <= x"0000000000000000000000000000000000000000000000000000000000010001";
+        modulus     <= x"d7cff677f3d26cfa6d5ca63cf2ddb7d120ae8abaf11e7b833a2338ca07471bd7";
+        
+        valid_in    <= '0';
+        ready_out   <= '0';
+        
+        reset_n <= '0';     wait for T;
+        reset_n <= '1';     wait for T;
 
+        --Start Encryption
+        valid_in <= '1';    wait for T;
+        valid_in <= '0';    wait for T;
+        wait until valid_out;
+        
+        --Set Encrypted message in and private key
+        message     <= result;
+        key         <= x"005f1e74ae149e7fbf361f1fd0bd3aa69e8b66745f2d50a0b1d82caf648d05c9";
+        
+        ready_out <= '1';   wait for T;
+        ready_out <= '0';   wait for T;
+        
+        --Start Decryption
+        valid_in <= '1';    wait for T;
+        valid_in <= '0';    wait for T;
+        
+        wait until valid_out;
+        wait for T;
+        
+        --assert (result = x"b64ce14712586ff4e5aa50459bc31d1c3cf7e94727067505189bc67be52baad9") report "Test: Modulo Operation Result Error" severity failure;
+        assert (result = std_logic_vector(to_unsigned(50, result'length))) report "Test: Modulo Operation Result Error" severity failure;
 
         
         assert false report "Test: OK" severity failure;

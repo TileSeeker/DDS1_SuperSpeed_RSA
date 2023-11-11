@@ -4,7 +4,7 @@ use ieee.numeric_std.all;
 
 entity binary is
 	generic (
-		block_size : integer := 260
+		block_size : integer := 256
 	);
 port(
     rst         :   in      std_logic;

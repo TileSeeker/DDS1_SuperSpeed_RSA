@@ -5,7 +5,7 @@ use std.textio.all;
 
 entity blakely is
 	generic (
-		C_block_size : integer := 260
+		C_block_size : integer := 256
 	);
 	port (
 		a             : in  STD_LOGIC_VECTOR ( C_block_size-1 downto 0 ); 
@@ -68,7 +68,7 @@ begin
       variable right_shift           :    std_logic_vector(C_block_size-1 downto 0)   := (others => '0');
       variable and_operation         :    std_logic_vector(C_block_size-1 downto 0)   := std_logic_vector(to_unsigned(1, right_shift'length));
       variable and_result            :    std_logic_vector(C_block_size-1 downto 0)   := (others => '0');
-      variable R                     :    std_logic_vector(C_block_size-1 downto 0)   := (others => '0');
+      variable R                     :    std_logic_vector(C_block_size   downto 0)   := (others => '0');
       
       --variable fstatus      :file_open_status;
       --variable file_line     :line;
@@ -79,11 +79,11 @@ begin
                 when encrypt =>
                         if(reset = '1') then
                             R := (others => '0');
-                            result <= R;
+                            result <= R(C_block_size-1 downto 0);
                             i <= (others => '0');
                             blakely_done <= '0';
                         elsif(i = unsigned(K)) then
-                             result <= R;
+                             result <= R(C_block_size-1 downto 0);
                              blakely_done <= '1';
                              --file_close(fptr);
                         else
@@ -96,17 +96,17 @@ begin
                             and_result      := std_logic_vector(unsigned(right_shift) and unsigned(and_operation));
                         
                             if(unsigned(and_result) = 1) then
-                                R := std_logic_vector( unsigned(R) + unsigned(R) + unsigned(b) );
+                                R := std_logic_vector( unsigned(R) + unsigned(R) + ('0'& unsigned(b)) );
                             else
                                 R := std_logic_vector( unsigned(R) + unsigned(R));
                             end if;
                             
                             if( unsigned(R) >= unsigned(n)) then
-                                 R := std_logic_vector(unsigned(R) - unsigned(n));
+                                 R := std_logic_vector(unsigned(R) -('0' & unsigned(n)));
                             end if;
                            
                             if( unsigned(R) >= unsigned(n)) then
-                                 R := std_logic_vector(unsigned(R) - unsigned(n));
+                                 R := std_logic_vector(unsigned(R) -('0' & unsigned(n)));
                             end if;
                             
                   

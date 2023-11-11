@@ -7,7 +7,7 @@ use ieee.std_logic_textio.all;
 
 entity blakely_tb is
  generic (
-		C_block_size : integer := 260
+		C_block_size : integer := 256
 	);
 end blakely_tb;
 
@@ -52,18 +52,18 @@ begin
               
      begin
 	   
-	   n <= x"099925173ad65686715385ea800cd28120288fc70a9bc98dd4c90d676f8ff768d"; --std_logic_vector(to_unsigned(123129, n'length));
+	   n <= x"99925173ad65686715385ea800cd28120288fc70a9bc98dd4c90d676f8ff768d"; --std_logic_vector(to_unsigned(123129, n'length));
 	   K <= std_logic_vector(to_unsigned(C_block_size, k'length));
 	   
-	   a <= x"00a23232323232323232323232323232323232323232323232323232323232323"; --std_logic_vector(to_unsigned(1, a'length));
-	   b <= x"00a23232323232323232323232323232323232323232323232323232323232323"; --std_logic_vector(to_unsigned(1, b'length));
+	   a <= x"0a23232323232323232323232323232323232323232323232323232323232323"; --std_logic_vector(to_unsigned(1, a'length));
+	   b <= x"0a23232323232323232323232323232323232323232323232323232323232323"; --std_logic_vector(to_unsigned(1, b'length));
 	
 	   wait for 10 ns;
 
 	   enable <= '1';
 	   	          
 	   wait until ready_out='1';
-	   assert result = x"024931802b9ead447563ec7f0f3d613270a5dd5f3d3df1457b9857de14da1a750" report "Blakley Calc Failed!" severity failure;
+	   assert result = x"24931802b9ead447563ec7f0f3d613270a5dd5f3d3df1457b9857de14da1a750" report "Blakley Calc Failed!" severity failure;
 	  	   
 	   wait for 100 ns;
 	   
