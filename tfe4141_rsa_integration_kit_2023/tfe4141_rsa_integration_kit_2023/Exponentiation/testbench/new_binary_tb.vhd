@@ -13,6 +13,8 @@ architecture tb of binary_tb is
     signal clk  :   std_logic := '0';
     signal en   :   std_logic := '0';
     signal rdy  :   std_logic := '0';
+    signal valid_out   :     std_logic;
+    signal ready_out   :     std_logic := '0';
     
     signal M    :   std_logic_vector(block_size-1 downto 0) := (others=>'0');
     signal N    :   std_logic_vector(block_size-1 downto 0) := (others=>'0');
@@ -27,6 +29,8 @@ DUT: entity work.binary(rtl)
     clk =>clk,
     en => en,
     rdy => rdy,
+    ready_out=> ready_out,
+    valid_out=> valid_out,
     M => M,
     N => N,
     e => e,
@@ -51,8 +55,11 @@ DUT: entity work.binary(rtl)
    en <= '1';
     wait for 5ns;
 
-   wait until rdy='1';
+   wait until valid_out='1';
    assert (C = std_logic_vector(to_unsigned(85, block_size))) report "Test: Modulo Operation Result Error" severity failure;
+   ready_out <= '1';    wait for T;
+   ready_out <= '0';    wait for T;
+   
    
    rst <= '0';
    wait for 5 ns;
@@ -69,10 +76,13 @@ DUT: entity work.binary(rtl)
    en <= '1';
     wait for 5ns;
    
-   wait until rdy='1';
+   wait until valid_out='1';
    
    M <= C;
    e <= x"0_005f1e74ae149e7fbf361f1fd0bd3aa69e8b66745f2d50a0b1d82caf648d05c9";
+   ready_out <= '1';    wait for T;
+   ready_out <= '0';    wait for T;
+   
    
    rst <= '0';
    wait for 5 ns;
@@ -85,7 +95,7 @@ DUT: entity work.binary(rtl)
    wait for 5ns;
        
 
-   wait until rdy='1';
+   wait until valid_out='1';
    --assert (C = std_logic_vector(to_unsigned(50, block_size))) report "Test: Modulo Operation Result Error" severity failure;
    assert (C = x"0_b64ce14712586ff4e5aa50459bc31d1c3cf7e94727067505189bc67be52baad9") report "Test: Modulo Operation Result Error" severity failure;
    assert false report "Test: OK" severity failure;

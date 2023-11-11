@@ -5,7 +5,7 @@ use ieee.numeric_std .all;
 
 entity exponentiation_tb is
 	generic (
-		C_block_size : integer := 260
+		C_block_size : integer := 256
 	);
 end exponentiation_tb;
 
@@ -29,6 +29,8 @@ architecture expBehave of exponentiation_tb is
     begin
 
 	i_exponentiation : entity work.exponentiation
+	   generic map(
+	       C_block_size=>C_block_size)
 		port map (
 			message   => message  ,
 			key       => key      ,
@@ -57,40 +59,27 @@ architecture expBehave of exponentiation_tb is
         modulus     <= std_logic_vector(to_unsigned(143, modulus'length));
         
         valid_in    <= '0';
+        ready_out   <= '0';
         
-        wait for 1*T;
-        reset_n <= '0';
-        wait for 1*T;
-        reset_n <= '1';
-        
-        if not(ready_in) then
-            wait until ready_in;
-        end if;
-        
-        valid_in <= '1';
-        wait for 5*T;
-        valid_in <= '0';
-        wait until ready_in;
+        reset_n <= '0';     wait for T;
+        reset_n <= '1';     wait for T;
+
+        --Start Encryption
+        valid_in <= '1';    wait for T;
+        valid_in <= '0';    wait for T;
+        wait until valid_out;
         
         message     <= result;
         key         <= std_logic_vector(to_unsigned(113, key'length));
-        modulus     <= std_logic_vector(to_unsigned(143, modulus'length));
         
-        valid_in    <= '0';
+        ready_out <= '1';   wait for T;
+        ready_out <= '0';   wait for T;
         
-        wait for 1*T;
-        reset_n <= '0';
-        wait for 1*T;
-        reset_n <= '1';
+        --Start Decryption
+        valid_in <= '1';    wait for T;
+        valid_in <= '0';    wait for T;
         
-        if not(ready_in) then
-            wait until ready_in;
-        end if;
-        
-        valid_in <= '1';
-        wait for 5*T;
-        valid_in <= '0';
-        wait until ready_in;
+        wait until valid_out;
      
         wait for 10*T;
         

@@ -4,7 +4,7 @@ use ieee.numeric_std.all;
 
 entity exponentiation is
 	generic (
-		C_block_size : integer := 260
+		C_block_size : integer := 256
 	);
 	port (
 		--input controll
@@ -39,16 +39,20 @@ begin
 	--result <= message xor modulus;
 	--ready_in <= ready_out;
 	--valid_out <= valid_in;
-	
+	--valid_out <= ready_in;
+		
 	rst <= not(reset_n);
-	valid_out <= ready_in;
 	
 	Binary: entity work.binary(rtl)
+	generic map(
+	block_size => C_block_size)
 	port map(
     rst => rst,
     clk => clk,
     en  => valid_in,
     rdy => ready_in,
+    valid_out => valid_out,
+    ready_out => ready_out,
     
     M  => Message,
     N  => Modulus,

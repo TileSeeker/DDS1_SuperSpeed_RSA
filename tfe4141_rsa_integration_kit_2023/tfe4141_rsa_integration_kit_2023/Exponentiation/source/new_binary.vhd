@@ -7,20 +7,24 @@ entity binary is
 		block_size : integer := 260
 	);
 port(
-    rst :   in std_logic;
-    clk :   in std_logic;
-    en  :   in std_logic;
-    rdy :   out std_logic;
+    rst         :   in      std_logic;
+    clk         :   in      std_logic;
+    en          :   in      std_logic;
+    rdy         :   out     std_logic;
+    valid_out   :   out     std_logic;
+    ready_out   :   in      std_logic;
     
-    M   :   in std_logic_vector(block_size-1 downto 0);
-    N   :   in std_logic_vector(block_size-1 downto 0);
-    e   :   in std_logic_vector(block_size-1 downto 0);
-    C   :   out std_logic_vector(block_size-1 downto 0));
+    M           :   in      std_logic_vector(block_size-1 downto 0);
+    N           :   in      std_logic_vector(block_size-1 downto 0);
+    e           :   in      std_logic_vector(block_size-1 downto 0);
+    C           :   out     std_logic_vector(block_size-1 downto 0));
 end binary;
 
 architecture rtl of binary is
 
-    type state_type is (rdy_state, start_state, b1_init_state, b1_start_state, b1_wait_state, b1_reset_state, b2_init_state, b2_start_state, b2_wait_state, b2_reset_state, rst_state);
+    type state_type is (rdy_state, start_state, b1_init_state, b1_start_state, b1_wait_state, b1_reset_state, 
+                        b2_init_state, b2_start_state, b2_wait_state, b2_reset_state, rst_state, finished_state);
+                  
     signal state, next_state : state_type := rdy_state;
     
     
@@ -54,6 +58,8 @@ architecture rtl of binary is
     
 begin
 Blakley: entity work.blakely(blakelyBehave) 
+    generic map(
+    C_block_size => block_size)
 	port map 
 	(
 			a         => blakley_a,
@@ -138,6 +144,7 @@ begin
     blakley_reset           <= '0';
     c_reg_select            <=  0;
     blakley_buffer_write    <= '0';
+    valid_out               <= '0';
     case state is  
         when rdy_state =>
             rdy <= '1';
@@ -173,6 +180,9 @@ begin
             
         when b2_reset_state =>
             blakley_reset   <= '1';
+            
+        when finished_state =>
+            valid_out <='1';    
             
         when rst_state =>
             blakley_reset   <= '1';
@@ -213,10 +223,13 @@ begin
                 end if;
             
             when b1_reset_state =>
-                if(e_index_value) then
+                
+                if      ((e_index_value/='1') and (count=0)) then
+                    next_state <= finished_state;
+                elsif   (e_index_value='1') then
                     next_state <= b2_init_state;
-                else
-                    next_state <= b1_init_state;
+                else 
+                    next_state<= b1_init_state;
                 end if;
                 
             when b2_init_state =>
@@ -234,9 +247,15 @@ begin
                 
             when b2_reset_state =>
                 if count=0 then
-                    next_state <= rdy_state;
+                    next_state <= finished_state;
                 else
                     next_state <= b1_init_state;
+                end if;
+                
+            when finished_state =>
+                next_state <= next_state;
+                if ready_out then
+                    next_state <= rdy_state;
                 end if;
                 
             when rst_state =>
