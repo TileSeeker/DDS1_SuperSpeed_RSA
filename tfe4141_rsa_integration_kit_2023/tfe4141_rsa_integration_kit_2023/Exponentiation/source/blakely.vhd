@@ -31,7 +31,6 @@ architecture blakelyBehave of blakely is
            
     --constant C_FILE_NAME :string  := "C:\tfe4141_rsa_integration_kit_2023\Exponentiation\output.txt";
     --file fptr: text;
-    
 begin
 
     ------------------------------------------------------------------------------

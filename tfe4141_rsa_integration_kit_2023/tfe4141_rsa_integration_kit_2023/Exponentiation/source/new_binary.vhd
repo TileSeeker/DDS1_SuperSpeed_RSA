@@ -38,7 +38,7 @@ architecture rtl of binary is
     signal blakley_a        : std_logic_vector (block_size-1 downto 0);
     signal blakley_b        : std_logic_vector (block_size-1 downto 0);
     signal blakley_modulo   : std_logic_vector (block_size-1 downto 0);   
-    signal blakley_a_msb    : std_logic_vector (15 downto 0)            := std_logic_vector(to_unsigned(block_size-1, 16));
+    signal blakley_a_msb    : std_logic_vector (15 downto 0)            := std_logic_vector(to_unsigned(260, 16));
     
     --Out
     signal blakley_done     : std_logic;
@@ -56,22 +56,31 @@ architecture rtl of binary is
     signal blakley_buffer     : std_logic_vector (block_size-1 downto 0);
     signal blakley_buffer_write: std_logic;
     
+    signal a                : std_logic_vector(259 downto 0);
+    signal b                : std_logic_vector(259 downto 0);
+    signal modulus          : std_logic_vector(259 downto 0);
+    signal result           : std_logic_vector(259 downto 0);
+    
 begin
 Blakley: entity work.blakely(blakelyBehave) 
     generic map(
-    C_block_size => block_size)
+    C_block_size => 260)
 	port map 
 	(
-			a         => blakley_a,
-			b         => blakley_b,
-			n         => blakley_modulo,
+			a         => a,
+			b         => b,
+			n         => modulus,
 			K         => blakley_a_msb,
 			enable    => blakley_start,
 			clk       => clk,
 			reset     => blakley_reset,
 		    ready_out => blakley_done,
-			result    => blakley_out
+			result    => result
 	);
+a	          <= "0000" & blakley_a;
+b	          <= "0000" & blakley_b;
+modulus       <= "0000" & blakley_modulo;
+blakley_out <= result(block_size-1 downto 0);
 
 
 counter: process(counter_rst, clk) is
