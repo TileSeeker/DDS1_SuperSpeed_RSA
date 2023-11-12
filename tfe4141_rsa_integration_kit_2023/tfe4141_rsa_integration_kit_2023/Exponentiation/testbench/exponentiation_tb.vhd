@@ -86,7 +86,7 @@ architecture expBehave of exponentiation_tb is
         assert (result = std_logic_vector(to_unsigned(50, result'length))) report "Test: Modulo Operation Result Error" severity failure;
         
         
-        --message     <= x"b64ce14712586ff4e5aa50459bc31d1c3cf7e94727067505189bc67be52baad9";
+        
         message     <= std_logic_vector(to_unsigned(50, result'length));
         key         <= x"0000000000000000000000000000000000000000000000000000000000010001";
         modulus     <= x"d7cff677f3d26cfa6d5ca63cf2ddb7d120ae8abaf11e7b833a2338ca07471bd7";
@@ -116,10 +116,59 @@ architecture expBehave of exponentiation_tb is
         wait until valid_out;
         wait for T;
         
-        --assert (result = x"b64ce14712586ff4e5aa50459bc31d1c3cf7e94727067505189bc67be52baad9") report "Test: Modulo Operation Result Error" severity failure;
+        
         assert (result = std_logic_vector(to_unsigned(50, result'length))) report "Test: Modulo Operation Result Error" severity failure;
 
+        message     <= x"b64ce14712586ff4e5aa50459bc31d1c3cf7e94727067505189bc67be52baad9";
+        key         <= x"0000000000000000000000000000000000000000000000000000000000010001";
+        modulus     <= x"d7cff677f3d26cfa6d5ca63cf2ddb7d120ae8abaf11e7b833a2338ca07471bd7";
         
+        valid_in    <= '0';
+        ready_out   <= '0';
+        
+        reset_n <= '0';     wait for T;
+        reset_n <= '1';     wait for T;
+
+        --Start Encryption
+        valid_in <= '1';    wait for T;
+        valid_in <= '0';    wait for T;
+        wait until valid_out;     
+        
+        
+        message <= result;
+        key         <= x"005f1e74ae149e7fbf361f1fd0bd3aa69e8b66745f2d50a0b1d82caf648d05c9";
+        
+        valid_in    <= '0';
+        ready_out   <= '0';
+        
+        reset_n <= '0';     wait for T;
+        reset_n <= '1';     wait for T;
+
+        --Start Encryption
+        valid_in <= '1';    wait for T;
+        valid_in <= '0';    wait for T;
+        wait until valid_out;  
+          
+        assert (result = x"b64ce14712586ff4e5aa50459bc31d1c3cf7e94727067505189bc67be52baad9") report "Test: Modulo Operation Result Error" severity failure;
+         
+         
+        message     <= x"0a232020207478742e6e695f307470203a2020202020202020202020454d414e";
+        key         <= x"0000000000000000000000000000000000000000000000000000000000010001";
+        modulus     <= x"99925173ad65686715385ea800cd28120288fc70a9bc98dd4c90d676f8ff768d";
+        
+        valid_in    <= '0';
+        ready_out   <= '0';
+        
+        reset_n <= '0';     wait for T;
+        reset_n <= '1';     wait for T;
+
+        --Start Encryption
+        valid_in <= '1';    wait for T;
+        valid_in <= '0';    wait for T;
+        wait until valid_out;     
+        
+        assert (result = x"85EE722363960779206A2B37CC8B64B5FC12A934473FA0204BBAAF714BC90C01") report "Test: Modulo Operation Result Error" severity failure;
+             
         assert false report "Test: OK" severity failure;
     end process;
 

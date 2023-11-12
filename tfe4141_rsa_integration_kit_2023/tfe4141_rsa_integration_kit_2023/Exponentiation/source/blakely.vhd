@@ -67,7 +67,7 @@ begin
       variable right_shift           :    std_logic_vector(C_block_size-1 downto 0)   := (others => '0');
       variable and_operation         :    std_logic_vector(C_block_size-1 downto 0)   := std_logic_vector(to_unsigned(1, right_shift'length));
       variable and_result            :    std_logic_vector(C_block_size-1 downto 0)   := (others => '0');
-      variable R                     :    std_logic_vector(C_block_size   downto 0)   := (others => '0');
+      variable R                     :    std_logic_vector(260   downto 0)   := (others => '0');
       
       --variable fstatus      :file_open_status;
       --variable file_line     :line;
@@ -95,7 +95,7 @@ begin
                             and_result      := std_logic_vector(unsigned(right_shift) and unsigned(and_operation));
                         
                             if(unsigned(and_result) = 1) then
-                                R := std_logic_vector( unsigned(R) + unsigned(R) + ('0'& unsigned(b)) );
+                                R := std_logic_vector( unsigned(R) + unsigned(R) + ('0' & unsigned(b)) );
                             else
                                 R := std_logic_vector( unsigned(R) + unsigned(R));
                             end if;
