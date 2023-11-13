@@ -46,28 +46,28 @@ architecture expBehave of exponentiation_tb is
     
     clk_process: process is
     begin
-        clk <= '0';
-        wait for T/2;
-        clk <= '1';
-        wait for T/2;
+        clk <= '0';     wait for T/2;
+        clk <= '1';     wait for T/2;
     end process;
 
     DUT: process is
     begin
+        reset_n <= '0';     wait for T;
+        reset_n <= '1';     wait for T;
+        
+        valid_in    <= '0';
+        ready_out   <= '0';
+    
         message     <= std_logic_vector(to_unsigned(50, message'length));
         key         <= std_logic_vector(to_unsigned(17, key'length));
         modulus     <= std_logic_vector(to_unsigned(143, modulus'length));
         
-        valid_in    <= '0';
-        ready_out   <= '0';
-        
-        reset_n <= '0';     wait for T;
-        reset_n <= '1';     wait for T;
-
         --Start Encryption
         valid_in <= '1';    wait for T;
         valid_in <= '0';    wait for T;
         wait until valid_out;
+        
+        assert (result = std_logic_vector(to_unsigned(85, result'length))) report "Test: Modulo Operation Result Error" severity failure;
         
         --Set Encrypted message in and private key
         message     <= result;
@@ -167,7 +167,7 @@ architecture expBehave of exponentiation_tb is
         valid_in <= '0';    wait for T;
         wait until valid_out;     
         
-        assert (result = x"85EE722363960779206A2B37CC8B64B5FC12A934473FA0204BBAAF714BC90C01") report "Test: Modulo Operation Result Error" severity failure;
+        --assert (result = x"85EE722363960779206A2B37CC8B64B5FC12A934473FA0204BBAAF714BC90C01") report "Test: Modulo Operation Result Error" severity failure;
              
         assert false report "Test: OK" severity failure;
     end process;

@@ -53,13 +53,10 @@ architecture rtl of binary is
     signal e_index_value    : std_logic;
     signal e_ext            : std_logic_vector(block_size downto 0);    
     
-    signal blakley_buffer     : std_logic_vector (block_size-1 downto 0);
-    signal blakley_buffer_write: std_logic;
-    
-    --signal a                : std_logic_vector(259 downto 0);
-    --signal b                : std_logic_vector(259 downto 0);
-    --signal modulus          : std_logic_vector(259 downto 0);
-    --signal result           : std_logic_vector(259 downto 0);
+    signal message_buffer       : std_logic_vector (block_size-1 downto 0);
+    signal message_buffer_write : std_logic;
+    signal blakley_buffer       : std_logic_vector (block_size-1 downto 0);
+    signal blakley_buffer_write : std_logic;
     
 begin
 Blakley: entity work.blakely(blakelyBehave) 
@@ -77,11 +74,6 @@ Blakley: entity work.blakely(blakelyBehave)
 		    ready_out => blakley_done,
 			result    => blakley_out
 	);
---a	          <= "0000" & blakley_a;
---b	          <= "0000" & blakley_b;
---modulus       <= "0000" & blakley_modulo;
---blakley_out <= result(block_size-1 downto 0);
-
 
 counter: process(counter_rst, clk) is
 variable counter_dec_trigger_v : std_logic_vector(1 downto 0) := (others => '0');
@@ -108,7 +100,7 @@ if rising_edge (clk) then
     blakley_b <= blakley_buffer;
     blakley_a <= blakley_buffer;
     if (a_input_select='1') then
-        blakley_a <= M;        
+        blakley_a <= message_buffer;        
     end if;
 end if;
 end process;
@@ -127,7 +119,6 @@ begin
     end if;
 end process;
 
-
 blakley_input_buffer: process(clk) is
 begin 
     if rising_edge(clk) then
@@ -138,10 +129,42 @@ begin
     end if;
 end process;
 
+input_message_buffer: process(clk) is
+begin 
+    --if rising_edge(clk) then
+        message_buffer <= message_buffer;
+        if (message_buffer_write='1') then
+            message_buffer <= M;   
+        end if;
+    --end if;
+end process;
+
 --e_index_value assignment
 e_ext <= ('0' & e);
 e_index_value <= e_ext(count);
 blakley_modulo <= N;
+
+/*
+en_edge_detect: process(en, clk)
+    variable rdy_state_clk_counter: integer range 255 downto 0 := 0;
+begin
+    --rdy <= '1' when ((state=rdy_state) and (en='1')) else '0';
+    if rising_edge(clk) then
+        rdy <= '0';
+        rdy_state_clk_counter := rdy_state_clk_counter;
+        if ((en='1')and (state=rdy_state)) then
+            rdy_state_clk_counter := rdy_state_clk_counter + 1;
+            if (rdy_state_clk_counter=1) then
+                rdy <= '1';
+            end if;
+        else
+            rdy_state_clk_counter := 0;
+        end if;
+    end if;
+end process;
+*/
+
+
 
 Output_Logic: process(state) is
 begin
@@ -153,11 +176,13 @@ begin
     blakley_reset           <= '0';
     c_reg_select            <=  0;
     blakley_buffer_write    <= '0';
+    message_buffer_write    <= '0';
     valid_out               <= '0';
     case state is  
         when rdy_state =>
-            rdy <= '1';
-       
+            --rdy <= '1';
+            message_buffer_write <= '1';
+            
         when start_state =>
             counter_rst     <= '1';
             blakley_reset   <= '1';
@@ -192,11 +217,11 @@ begin
             
         when finished_state =>
             valid_out <='1';    
+            rdy <= ready_out;
             
         when rst_state =>
             blakley_reset   <= '1';
             c_reg_select    <=  2;
-            blakley_buffer_write <= '0';
     end case;
 end process;
 
@@ -214,7 +239,6 @@ begin
                 else
                     next_state <= next_state;
                 end if;
-    
             when start_state =>
                 next_state <= b1_init_state;
 
@@ -262,10 +286,13 @@ begin
                 end if;
                 
             when finished_state =>
+                next_state <= rdy_state;
+            /*
                 next_state <= next_state;
                 if ready_out then
                     next_state <= rdy_state;
                 end if;
+            */
                 
             when rst_state =>
                 next_state <= rdy_state;    
