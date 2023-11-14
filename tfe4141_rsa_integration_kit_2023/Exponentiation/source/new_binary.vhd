@@ -166,63 +166,63 @@ end process;
 
 
 
-Output_Logic: process(state) is
+Output_Logic: process(all) is
 begin
-    rdy                     <= '0';
-    counter_rst             <= '0';
-    counter_dec             <= '0';
-    a_input_select          <= '0';
-    blakley_start           <= '0';
-    blakley_reset           <= '0';
-    c_reg_select            <=  0;
-    blakley_buffer_write    <= '0';
-    message_buffer_write    <= '0';
-    valid_out               <= '0';
-    case state is  
-        when rdy_state =>
-            --rdy <= '1';
-            message_buffer_write <= '1';
+        rdy                     <= '0';
+        counter_rst             <= '0';
+        counter_dec             <= '0';
+        a_input_select          <= '0';
+        blakley_start           <= '0';
+        blakley_reset           <= '0';
+        c_reg_select            <=  0;
+        blakley_buffer_write    <= '0';
+        message_buffer_write    <= '0';
+        valid_out               <= '0';
+        case state is  
+            when rdy_state =>
+                --rdy <= '1';
+                message_buffer_write <= '1';
+                
+            when start_state =>
+                counter_rst     <= '1';
+                blakley_reset   <= '1';
+                c_reg_select    <=  2;
+           
+            when b1_init_state=>      
+                blakley_buffer_write <= '1';
+                
+            when b1_start_state =>
+                counter_dec     <= '1';
+                blakley_start   <= '1';
             
-        when start_state =>
-            counter_rst     <= '1';
-            blakley_reset   <= '1';
-            c_reg_select    <=  2;
-       
-        when b1_init_state=>      
-            blakley_buffer_write <= '1';
+            when b1_wait_state =>
+                c_reg_select    <=  1;
+                
+            when b1_reset_state =>
+                blakley_reset   <= '1';
+                
+            when b2_init_state =>      
+                blakley_buffer_write <= '1';
             
-        when b1_start_state =>
-            counter_dec     <= '1';
-            blakley_start   <= '1';
-        
-        when b1_wait_state =>
-            c_reg_select    <=  1;
+            when b2_start_state =>        
+                a_input_select  <= '1';
+                blakley_start   <= '1';
             
-        when b1_reset_state =>
-            blakley_reset   <= '1';
-            
-        when b2_init_state =>      
-            blakley_buffer_write <= '1';
-        
-        when b2_start_state =>        
-            a_input_select  <= '1';
-            blakley_start   <= '1';
-        
-        when b2_wait_state =>         
-            a_input_select  <= '1';
-            c_reg_select    <=  1;
-            
-        when b2_reset_state =>
-            blakley_reset   <= '1';
-            
-        when finished_state =>
-            valid_out <='1';    
-            rdy <= ready_out;
-            
-        when rst_state =>
-            blakley_reset   <= '1';
-            c_reg_select    <=  2;
-    end case;
+            when b2_wait_state =>         
+                a_input_select  <= '1';
+                c_reg_select    <=  1;
+                
+            when b2_reset_state =>
+                blakley_reset   <= '1';
+                
+            when finished_state =>
+                valid_out <='1';    
+                rdy <= ready_out;
+                
+            when rst_state =>
+                blakley_reset   <= '1';
+                c_reg_select    <=  2;
+        end case;
 end process;
 
 
