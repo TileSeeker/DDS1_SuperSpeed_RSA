@@ -36,32 +36,34 @@ begin
     ------------------------------------------------------------------------------
      STATE_MEMORY : process(clk, reset) is
      begin
+        current_state <= current_state;
         if(reset = '1') then
             current_state <= idle;
-        elsif (clk ='1') then
+        elsif rising_edge(clk) then
             current_state <= next_state;
         end if;
      end process STATE_MEMORY;
     ------------------------------------------------------------------------------
     
     ------------------------------------------------------------------------------
-    NEXT_STATE_LOGIC : process(enable, blakely_done)
+    NEXT_STATE_LOGIC : process(clk, enable, blakely_done)
         begin 
-        case(current_state) is
-            when encrypt => if(i >= unsigned(K)) then
-                                ready_out <= '1';
-                                next_state <= idle;                               
-                            end if;
-                            
-            when idle =>  if(enable = '1') then
-                            next_state <= encrypt;
-                          end if;
-       end case;
+                next_state <= next_state;
+                case(current_state) is
+                    when encrypt => if(i >= unsigned(K)) then
+                                        ready_out <= '1';
+                                        next_state <= idle;                               
+                                    end if;
+                                    
+                    when idle =>  if(enable = '1') then
+                                    next_state <= encrypt;
+                                  end if;
+                end case;
    end process NEXT_STATE_LOGIC;
     ------------------------------------------------------------------------------
 
     ------------------------------------------------------------------------------
-    BLAKELY : process(current_state, i, reset) is
+    BLAKELY : process(clk, current_state, i, reset) is
     
       variable bit_shift_pos         :    integer                                     :=  0;
       variable right_shift           :    std_logic_vector(C_block_size-1 downto 0)   := (others => '0');
@@ -72,9 +74,8 @@ begin
       --variable fstatus      :file_open_status;
       --variable file_line     :line;
 
-      begin 
+      begin
             case(current_state) is
-      
                 when encrypt =>
                         if(reset = '1') then
                             R := (others => '0');
@@ -123,7 +124,6 @@ begin
                  end if;
            
            end case;
-           
      end process BLAKELY;
      
     ------------------------------------------------------------------------------

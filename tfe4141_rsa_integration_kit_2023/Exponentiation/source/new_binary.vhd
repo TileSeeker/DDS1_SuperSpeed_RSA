@@ -131,12 +131,12 @@ end process;
 
 input_message_buffer: process(clk) is
 begin 
-    --if rising_edge(clk) then
+    if rising_edge(clk) then
         message_buffer <= message_buffer;
         if (message_buffer_write='1') then
             message_buffer <= M;   
         end if;
-    --end if;
+    end if;
 end process;
 
 --e_index_value assignment
@@ -286,13 +286,10 @@ begin
                 end if;
                 
             when finished_state =>
-                next_state <= rdy_state;
-            /*
                 next_state <= next_state;
-                if ready_out then
+                if valid_out then
                     next_state <= rdy_state;
                 end if;
-            */
                 
             when rst_state =>
                 next_state <= rdy_state;    
