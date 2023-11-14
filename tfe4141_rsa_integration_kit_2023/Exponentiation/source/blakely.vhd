@@ -75,7 +75,8 @@ begin
       --variable file_line     :line;
 
       begin
-            case(current_state) is
+        R:= R;
+            case(current_state) is 
                 when encrypt =>
                         if(reset = '1') then
                             R := (others => '0');

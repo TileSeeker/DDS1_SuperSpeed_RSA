@@ -4,7 +4,8 @@ use ieee.numeric_std.all;
 
 entity exponentiation is
 	generic (
-		C_block_size : integer := 256
+		C_block_size : integer := 256;
+		cores        : integer := 2
 	);
 	port (
 		--input controll
@@ -36,11 +37,6 @@ architecture expBehave of exponentiation is
 signal rst: std_logic;
 
 begin
-	--result <= message xor modulus;
-	--ready_in <= ready_out;
-	--valid_out <= valid_in;
-	--valid_out <= ready_in;
-		
 	rst <= not(reset_n);
 	
 	Binary: entity work.binary(rtl)
@@ -58,5 +54,4 @@ begin
     N  => Modulus,
     e  => key,
     C  => result);
-	
 end expBehave;
