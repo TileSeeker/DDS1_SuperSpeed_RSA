@@ -1,3 +1,7 @@
+#Vivado Files
+tfe4141_rsa_integration_kit_2023/RSA_soc/boards
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
