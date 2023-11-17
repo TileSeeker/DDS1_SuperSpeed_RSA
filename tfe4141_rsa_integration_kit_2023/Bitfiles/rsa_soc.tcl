@@ -125,8 +125,8 @@ if { $bCheckIPs == 1 } {
 xilinx.com:ip:processing_system7:5.5\
 xilinx.com:ip:proc_sys_reset:5.0\
 xilinx.com:ip:smartconnect:1.0\
-xilinx.com:user:RSA_accelerator:1.0\
 xilinx.com:ip:axi_dma:7.1\
+xilinx.com:user:RSA_accelerator:1.0\
 "
 
    set list_ips_missing ""
@@ -204,9 +204,6 @@ proc create_hier_cell_rsa { parentCell nameHier } {
   create_bd_pin -dir I -type clk m_axi_mm2s_aclk
   create_bd_pin -dir I -type rst reset_n
 
-  # Create instance: rsa_acc, and set properties
-  set rsa_acc [ create_bd_cell -type ip -vlnv xilinx.com:user:RSA_accelerator:1.0 rsa_acc ]
-
   # Create instance: rsa_dma, and set properties
   set rsa_dma [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_dma:7.1 rsa_dma ]
   set_property -dict [list \
@@ -214,6 +211,9 @@ proc create_hier_cell_rsa { parentCell nameHier } {
     CONFIG.c_sg_length_width {26} \
   ] $rsa_dma
 
+
+  # Create instance: rsa_acc, and set properties
+  set rsa_acc [ create_bd_cell -type ip -vlnv xilinx.com:user:RSA_accelerator:1.0 rsa_acc ]
 
   # Create interface connections
   connect_bd_intf_net -intf_net S00_AXI_1 [get_bd_intf_pins S00_AXI] [get_bd_intf_pins rsa_acc/s00_axi]
@@ -224,8 +224,8 @@ proc create_hier_cell_rsa { parentCell nameHier } {
   connect_bd_intf_net -intf_net rsa_dma_M_AXIS_MM2S [get_bd_intf_pins rsa_acc/s00_axis] [get_bd_intf_pins rsa_dma/M_AXIS_MM2S]
 
   # Create port connections
-  connect_bd_net -net processing_system7_0_FCLK_CLK0 [get_bd_pins m_axi_mm2s_aclk] [get_bd_pins rsa_acc/clk] [get_bd_pins rsa_dma/s_axi_lite_aclk] [get_bd_pins rsa_dma/m_axi_mm2s_aclk] [get_bd_pins rsa_dma/m_axi_s2mm_aclk]
-  connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins reset_n] [get_bd_pins rsa_acc/reset_n] [get_bd_pins rsa_dma/axi_resetn]
+  connect_bd_net -net processing_system7_0_FCLK_CLK0 [get_bd_pins m_axi_mm2s_aclk] [get_bd_pins rsa_dma/s_axi_lite_aclk] [get_bd_pins rsa_dma/m_axi_mm2s_aclk] [get_bd_pins rsa_dma/m_axi_s2mm_aclk] [get_bd_pins rsa_acc/clk]
+  connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins reset_n] [get_bd_pins rsa_dma/axi_resetn] [get_bd_pins rsa_acc/reset_n]
 
   # Restore current instance
   current_bd_instance $oldCurInst
