@@ -75,7 +75,7 @@ Blakley: entity work.blakely(blakelyBehave)
 			result    => blakley_out
 	);
 
-counter: process(counter_rst, clk) is
+counter: process(all) is
 variable counter_dec_trigger_v : std_logic_vector(1 downto 0) := (others => '0');
 begin
     if counter_rst = '1' then
@@ -94,7 +94,7 @@ begin
 end process;
 
 
-Blakley_a_input_select: process(clk)
+Blakley_a_input_select: process(all)
 begin
 if rising_edge (clk) then
     blakley_b <= blakley_buffer;
@@ -105,7 +105,7 @@ if rising_edge (clk) then
 end if;
 end process;
 
-Reg_C_input_select: process(clk)
+Reg_C_input_select: process(all)
 begin
     if rising_edge(clk) then
     case c_reg_select is
@@ -119,7 +119,7 @@ begin
     end if;
 end process;
 
-blakley_input_buffer: process(clk) is
+blakley_input_buffer: process(all) is
 begin 
     if rising_edge(clk) then
         blakley_buffer <= blakley_buffer;
@@ -129,7 +129,7 @@ begin
     end if;
 end process;
 
-input_message_buffer: process(clk) is
+input_message_buffer: process(all) is
 begin 
     if rising_edge(clk) then
         message_buffer <= message_buffer;
@@ -226,7 +226,7 @@ begin
 end process;
 
 
-Next_State_Logic: process(rst, clk) is
+Next_State_Logic: process(all) is
 begin
     if rst then
         next_state <= rst_state;
