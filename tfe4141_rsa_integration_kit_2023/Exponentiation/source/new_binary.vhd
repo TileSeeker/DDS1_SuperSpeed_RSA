@@ -287,7 +287,7 @@ begin
                 
             when finished_state =>
                 next_state <= next_state;
-                if valid_out then
+                if (valid_out and ready_out) then
                     next_state <= rdy_state;
                 end if;
                 
