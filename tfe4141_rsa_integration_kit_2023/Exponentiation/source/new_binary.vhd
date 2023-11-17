@@ -13,6 +13,8 @@ port(
     rdy         :   out     std_logic;
     valid_out   :   out     std_logic;
     ready_out   :   in      std_logic;
+    msgin_last  :   in      std_logic;
+    msgout_last :   out     std_logic;
     
     M           :   in      std_logic_vector(block_size-1 downto 0);
     N           :   in      std_logic_vector(block_size-1 downto 0);
@@ -57,6 +59,7 @@ architecture rtl of binary is
     signal message_buffer_write : std_logic;
     signal blakley_buffer       : std_logic_vector (block_size-1 downto 0);
     signal blakley_buffer_write : std_logic;
+    signal msg_last_buffer      : std_logic;
     
 begin
 Blakley: entity work.blakely(blakelyBehave) 
@@ -133,8 +136,11 @@ input_message_buffer: process(all) is
 begin 
     if rising_edge(clk) then
         message_buffer <= message_buffer;
+        msg_last_buffer <= msg_last_buffer;
         if (message_buffer_write='1') then
-            message_buffer <= M;   
+            message_buffer <= M;
+            msg_last_buffer <= msgin_last;   
+            
         end if;
     end if;
 end process;
@@ -178,15 +184,17 @@ begin
         blakley_buffer_write    <= '0';
         message_buffer_write    <= '0';
         valid_out               <= '0';
+        msgout_last             <= '0';
         case state is  
             when rdy_state =>
-                --rdy <= '1';
+                rdy <= en;
                 message_buffer_write <= '1';
                 
             when start_state =>
                 counter_rst     <= '1';
                 blakley_reset   <= '1';
                 c_reg_select    <=  2;
+                
            
             when b1_init_state=>      
                 blakley_buffer_write <= '1';
@@ -217,7 +225,8 @@ begin
                 
             when finished_state =>
                 valid_out <='1';    
-                rdy <= ready_out;
+                msgout_last <= msg_last_buffer;
+                --rdy <= ready_out;
                 
             when rst_state =>
                 blakley_reset   <= '1';

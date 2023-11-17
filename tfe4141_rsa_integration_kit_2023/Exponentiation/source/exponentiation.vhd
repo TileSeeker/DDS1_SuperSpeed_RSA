@@ -10,7 +10,9 @@ entity exponentiation is
 	port (
 		--input controll
 		valid_in	: in STD_LOGIC;
+		msgin_last  : in STD_LOGIC;
 		ready_in	: out STD_LOGIC;
+		
 
 		--input data
 		message 	: in STD_LOGIC_VECTOR ( C_block_size-1 downto 0 );
@@ -18,6 +20,7 @@ entity exponentiation is
 
 		--ouput controll
 		ready_out	: in STD_LOGIC;
+		msgout_last : out STD_LOGIC;
 		valid_out	: out STD_LOGIC;
 
 		--output data
@@ -49,6 +52,8 @@ begin
     rdy => ready_in,
     valid_out => valid_out,
     ready_out => ready_out,
+    msgin_last => msgin_last,
+    msgout_last => msgout_last,
     
     M  => Message,
     N  => Modulus,
