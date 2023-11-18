@@ -109,6 +109,7 @@ end if;
 end process;
 
 
+/*
 Reg_C_input_select: process(all)
 begin
     if rising_edge(clk) then
@@ -122,9 +123,10 @@ begin
     end case;
     end if;
 end process;
+*/
 
 
-
+/*
 blakley_input_buffer: process(all) is
 begin 
     if rising_edge(clk) then
@@ -134,6 +136,7 @@ begin
         end if;
     end if;
 end process;
+*/
 
 /*
 input_message_buffer: process(all) is
@@ -192,7 +195,9 @@ begin
         msgout_last             <= '0';
         
         message_buffer  <= message_buffer;
-        msg_last_buffer <= msg_last_buffer;        
+        msg_last_buffer <= msg_last_buffer;
+        C <= C;
+        blakley_buffer <= blakley_buffer;        
         
         case state is  
             when rdy_state =>
@@ -207,23 +212,32 @@ begin
                 counter_rst     <= '1';
                 blakley_reset   <= '1';
                 c_reg_select    <=  2;
+                C <= std_logic_vector(to_unsigned(1, block_size));
                 
            
             when b1_init_state=>      
                 blakley_buffer_write <= '1';
+                blakley_buffer <= C;
                 
             when b1_start_state =>
                 counter_dec     <= '1';
                 blakley_start   <= '1';
+
             
             when b1_wait_state =>
                 c_reg_select    <=  1;
+                if blakley_done then
+                    C <= blakley_out;        
+                end if;
                 
             when b1_reset_state =>
+                c_reg_select    <=  1;
+                --C <= blakley_out;
                 blakley_reset   <= '1';
                 
             when b2_init_state =>      
                 blakley_buffer_write <= '1';
+                blakley_buffer <= C;
             
             when b2_start_state =>        
                 a_input_select  <= '1';
@@ -232,8 +246,13 @@ begin
             when b2_wait_state =>         
                 a_input_select  <= '1';
                 c_reg_select    <=  1;
+                if blakley_done then
+                    C <= blakley_out;        
+                end if;
                 
             when b2_reset_state =>
+                c_reg_select    <=  1;
+                --C <= blakley_out;
                 blakley_reset   <= '1';
                 
             when finished_state =>
@@ -243,6 +262,7 @@ begin
                 
             when rst_state =>
                 blakley_reset   <= '1';
+                C <= std_logic_vector(to_unsigned(1, block_size));
                 c_reg_select    <=  2;
         end case;
 end process;

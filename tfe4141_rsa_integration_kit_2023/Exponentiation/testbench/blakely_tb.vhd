@@ -96,6 +96,8 @@ begin
 	   reset <= '1';
 	   
 	   wait for 100 ns;
+	   
+	   assert false report "Test Done" severity Failure;
 
 	end process stimulus;
 	   
