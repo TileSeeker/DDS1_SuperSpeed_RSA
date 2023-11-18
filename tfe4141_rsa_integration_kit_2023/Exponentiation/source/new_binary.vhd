@@ -24,7 +24,7 @@ end binary;
 
 architecture rtl of binary is
 
-    type state_type is (rdy_state, start_state, b1_init_state, b1_start_state, b1_wait_state, b1_reset_state, 
+    type state_type is (rdy_state, init_state, start_state, b1_init_state, b1_start_state, b1_wait_state, b1_reset_state, 
                         b2_init_state, b2_start_state, b2_wait_state, b2_reset_state, rst_state, finished_state);
                   
     signal state, next_state : state_type := rdy_state;
@@ -187,8 +187,9 @@ begin
         msgout_last             <= '0';
         case state is  
             when rdy_state =>
-                rdy <= en;
                 message_buffer_write <= '1';
+            when init_state =>
+                rdy <= en;             
                 
             when start_state =>
                 counter_rst     <= '1';
@@ -244,10 +245,13 @@ begin
             case state is
             when rdy_state =>
                 if (en='1') then
-                    next_state <= start_state;
+                    next_state <= init_state;
                 else
                     next_state <= next_state;
                 end if;
+            when init_state =>
+                next_state <= start_state;       
+            
             when start_state =>
                 next_state <= b1_init_state;
 
