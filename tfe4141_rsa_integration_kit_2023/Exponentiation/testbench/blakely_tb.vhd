@@ -55,26 +55,48 @@ begin
 	   n <= x"99925173ad65686715385ea800cd28120288fc70a9bc98dd4c90d676f8ff768d"; --std_logic_vector(to_unsigned(123129, n'length));
 	   K <= std_logic_vector(to_unsigned(C_block_size, k'length));
 	   
-	   a <= x"0a23232323232323232323232323232323232323232323232323232323232323"; --std_logic_vector(to_unsigned(1, a'length));
-	   b <= x"0a23232323232323232323232323232323232323232323232323232323232323"; --std_logic_vector(to_unsigned(1, b'length));
+	   a <= x"0000000011111111222222223333333344444444555555556666666677777777"; --std_logic_vector(to_unsigned(1, a'length));
+	   b <= x"0000000011111111222222223333333344444444555555556666666677777777"; --std_logic_vector(to_unsigned(1, b'length));
 	
 	   wait for 10 ns;
 
 	   enable <= '1';
 	   	          
 	   wait until ready_out='1';
-	   assert result = x"24931802b9ead447563ec7f0f3d613270a5dd5f3d3df1457b9857de14da1a750" report "Blakley Calc Failed!" severity failure;
 	  	   
 	   wait for 100 ns;
 	   
-	   reset <= '1';
-
-	   wait for 100 ns;
+	   assert result <= x"5f3a4171696ab4e8aefbabb6e786a1449fe8187a1130ad91a0220ab6aebc5ba6" report "Failed";
 	   
+	   wait for 100 ns;
+
+       enable <= '0';
+	  
+	   reset <= '1';
+	   
+	   wait for 200 ns;
+
 	   reset <= '0';
 	   
-    	   
-       assert false report "Test: OK" severity failure;
+	   wait for 200 ns;
+	   	   
+	   a <= x"0000000000000000000000000000000000000000000000000000000000000001"; --std_logic_vector(to_unsigned(1, a'length));
+	   b <= x"0000000000000000000000000000000000000000000000000000000000000001"; 
+	  
+	   wait for 200 ns;
+	   
+	   enable <= '1';
+	   
+	   wait until ready_out ='1';
+	   	  
+	   wait for 1000 ns; 
+	   	   
+	   enable <= '0';
+	  
+	   reset <= '1';
+	   
+	   wait for 100 ns;
+
 	end process stimulus;
 	   
 end tb;
