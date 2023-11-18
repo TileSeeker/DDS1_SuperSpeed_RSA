@@ -260,6 +260,7 @@ begin
                 blakley_reset   <= '1';
                 
             when finished_state =>
+                C <= std_logic_vector(to_unsigned(1234, c'length)); --OUT TEST
                 valid_out <='1';    
                 msgout_last <= msg_last_buffer;
                 --rdy <= ready_out;
@@ -335,6 +336,7 @@ begin
                 end if;
                 
             when finished_state =>
+                
                 next_state <= next_state;
                 if (valid_out and ready_out) then
                     next_state <= rdy_state;
