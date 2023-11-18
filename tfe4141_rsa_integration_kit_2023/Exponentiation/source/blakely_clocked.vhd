@@ -53,7 +53,7 @@ begin
     NEXT_STATE_LOGIC : process(enable, blakely_done)
         begin 
         case(current_state) is
-            when encrypt => if(i >= unsigned(K)) then
+            when encrypt => if(blakely_done = '1') then
                                 ready_out <= '1';
                                 next_state <= idle;                               
                             end if;
@@ -143,7 +143,9 @@ begin
                     blakely_done <= '0';
                  end if;
                  
+                                                  
            end case;
+           
            
      end process BLAKELY;
      
