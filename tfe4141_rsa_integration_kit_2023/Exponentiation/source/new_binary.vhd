@@ -108,6 +108,7 @@ if rising_edge (clk) then
 end if;
 end process;
 
+/*
 Reg_C_input_select: process(all)
 begin
     if rising_edge(clk) then
@@ -121,6 +122,8 @@ begin
     end case;
     end if;
 end process;
+*/
+
 
 blakley_input_buffer: process(all) is
 begin 
@@ -132,6 +135,7 @@ begin
     end if;
 end process;
 
+/*
 input_message_buffer: process(all) is
 begin 
     if rising_edge(clk) then
@@ -144,6 +148,7 @@ begin
         end if;
     end if;
 end process;
+*/
 
 --e_index_value assignment
 e_ext <= ('0' & e);
@@ -185,11 +190,18 @@ begin
         message_buffer_write    <= '0';
         valid_out               <= '0';
         msgout_last             <= '0';
+        
+        message_buffer  <= message_buffer;
+        msg_last_buffer <= msg_last_buffer;        
+        
         case state is  
             when rdy_state =>
-                message_buffer_write <= '1';
+                --message_buffer_write <= '1';
+                message_buffer <= M;
+                msg_last_buffer <= msgin_last;  
             when init_state =>
-                rdy <= en;             
+                rdy <= en;
+           
                 
             when start_state =>
                 counter_rst     <= '1';
@@ -225,6 +237,7 @@ begin
                 blakley_reset   <= '1';
                 
             when finished_state =>
+                C <= std_logic_vector(to_unsigned(12345, C'length)); --Output test
                 valid_out <='1';    
                 msgout_last <= msg_last_buffer;
                 --rdy <= ready_out;
