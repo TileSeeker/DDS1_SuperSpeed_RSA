@@ -110,7 +110,6 @@ begin
                                  R := std_logic_vector(unsigned(R) -('0' & unsigned(n)));
                             end if;
                             
-                  
                             if ( i /= unsigned(K)) then
                                i <= i + 1;   
                             end if;   
@@ -122,6 +121,7 @@ begin
                     R := (others => '0');
                     i <= (others => '0');
                     blakely_done <= '0';
+                    ready_out <= '0';
                  end if;
            
            end case;
