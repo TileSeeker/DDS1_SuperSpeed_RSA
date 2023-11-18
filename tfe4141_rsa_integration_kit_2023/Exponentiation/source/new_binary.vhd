@@ -108,7 +108,7 @@ if rising_edge (clk) then
 end if;
 end process;
 
-/*
+
 Reg_C_input_select: process(all)
 begin
     if rising_edge(clk) then
@@ -122,7 +122,7 @@ begin
     end case;
     end if;
 end process;
-*/
+
 
 
 blakley_input_buffer: process(all) is
@@ -237,7 +237,6 @@ begin
                 blakley_reset   <= '1';
                 
             when finished_state =>
-                C <= std_logic_vector(to_unsigned(12345, C'length)); --Output test
                 valid_out <='1';    
                 msgout_last <= msg_last_buffer;
                 --rdy <= ready_out;
