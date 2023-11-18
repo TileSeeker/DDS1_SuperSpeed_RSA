@@ -96,7 +96,7 @@ begin
     end if;
 end process;
 
-
+/*
 Blakley_a_input_select: process(all)
 begin
 if rising_edge (clk) then
@@ -107,7 +107,7 @@ if rising_edge (clk) then
     end if;
 end if;
 end process;
-
+*/
 
 /*
 Reg_C_input_select: process(all)
@@ -197,7 +197,9 @@ begin
         message_buffer  <= message_buffer;
         msg_last_buffer <= msg_last_buffer;
         C <= C;
-        blakley_buffer <= blakley_buffer;        
+        blakley_buffer <= blakley_buffer;
+        blakley_b <= blakley_buffer;
+        blakley_a <= blakley_a;        
         
         case state is  
             when rdy_state =>
@@ -218,6 +220,7 @@ begin
             when b1_init_state=>      
                 blakley_buffer_write <= '1';
                 blakley_buffer <= C;
+                blakley_a <= blakley_buffer;
                 
             when b1_start_state =>
                 counter_dec     <= '1';
@@ -238,6 +241,7 @@ begin
             when b2_init_state =>      
                 blakley_buffer_write <= '1';
                 blakley_buffer <= C;
+                blakley_a <= message_buffer;
             
             when b2_start_state =>        
                 a_input_select  <= '1';
