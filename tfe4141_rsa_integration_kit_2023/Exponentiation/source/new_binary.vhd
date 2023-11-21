@@ -179,9 +179,154 @@ end process;
 */
 
 
+FSM: process(all) is
+begin
+    if rst then
+            
+            rdy                     <= '0';
+            counter_rst             <= '0';
+            counter_dec             <= '0';
+            a_input_select          <= '0';
+            blakley_start           <= '0';
+            blakley_reset           <= '0';
+            c_reg_select            <=  0;
+            blakley_buffer_write    <= '0';
+            message_buffer_write    <= '0';
+            valid_out               <= '0';
+            msgout_last             <= '0';
+            message_buffer          <= (others=>'0');
+            msg_last_buffer         <= '0';
+            C                       <= (others=>'0');
+            blakley_buffer <= (others=>'0');
+            blakley_b <= (others=>'0');
+            blakley_a <= (others=>'0');    
+            
+            next_state <= rst_state;
+           
+    else
+        if rising_edge(clk) then
+            --Default Values--
+            rdy                     <= '0';
+            counter_rst             <= '0';
+            counter_dec             <= '0';
+            a_input_select          <= '0';
+            blakley_start           <= '0';
+            blakley_reset           <= '0';
+            c_reg_select            <=  0;
+            blakley_buffer_write    <= '0';
+            message_buffer_write    <= '0';
+            valid_out               <= '0';
+            msgout_last             <= '0';
+            message_buffer          <= message_buffer;
+            msg_last_buffer         <= msg_last_buffer;
+            C                       <= C;
+            blakley_buffer          <= blakley_buffer;
+            blakley_b               <= blakley_b;
+            blakley_a               <= blakley_a;         
+            
+            case state is
+                when rdy_state =>
+                   message_buffer <= M;
+                   msg_last_buffer <= msgin_last; 
+                   
+                    if (en='1') then
+                        next_state <= init_state;
+                    else
+                        next_state <= next_state;
+                    end if;
+                when init_state =>
+                    rdy <= en;
+                
+                    next_state <= start_state;       
+                
+                when start_state =>
+                    counter_rst     <= '1';
+                    blakley_reset   <= '1';
+                    C <= std_logic_vector(to_unsigned(1, block_size));
+                
+                    next_state <= b1_init_state;
+    
+                when b1_init_state =>
+                    blakley_a <= C;
+                    blakley_b <= C;
+                
+                    next_state <= b1_start_state;                
+                    
+                when b1_start_state =>
+                    counter_dec     <= '1';
+                    blakley_start   <= '1';
+                    
+                    next_state <= b1_wait_state;
+                    
+                when b1_wait_state =>
+                    if (blakley_done='1') then
+                        C <= blakley_out;  
+                        next_state <= b1_reset_state;
+                    else
+                        next_state <= next_state;
+                    end if;
+                
+                when b1_reset_state =>
+                    blakley_reset   <= '1';
+                    
+                    if      ((e_index_value/='1') and (count=0)) then
+                        next_state <= finished_state;
+                    elsif   (e_index_value='1') then
+                        next_state <= b2_init_state;
+                    else 
+                        next_state<= b1_init_state;
+                    end if;
+                    
+                when b2_init_state =>
+                    blakley_a <= message_buffer;
+                    blakley_b <= C;
+                    next_state <= b2_start_state;     
+                
+                when b2_start_state =>
+                    blakley_start   <= '1';
+                    next_state <= b2_wait_state;
+                
+                when b2_wait_state =>
+                    if (blakley_done) then
+                        C <= blakley_out; 
+                        next_state <= b2_reset_state;     
+                    else
+                        next_state <= next_state;
+                    end if;
+                    
+                when b2_reset_state =>
+                    blakley_reset   <= '1';
+                    if count=0 then
+                        next_state <= finished_state;
+                    else
+                        next_state <= b1_init_state;
+                    end if;
+                    
+                when finished_state =>
+                    valid_out <='1';    
+                    msgout_last <= msg_last_buffer;
+     
+                    next_state <= next_state;
+                    if (valid_out and ready_out) then
+                        valid_out <= '0';
+                        next_state <= rdy_state;
+                    end if;
+                    
+                when rst_state =>
+                    blakley_reset   <= '1';
+                    C <= std_logic_vector(to_unsigned(1, block_size));
+                    next_state <= rdy_state;    
+            end case;   
+        end if;
+    end if;
+    state <= next_state;
+end process;
+end rtl;
 
+/*
 Output_Logic: process(all) is
 begin
+        --Default Values
         rdy                     <= '0';
         counter_rst             <= '0';
         counter_dec             <= '0';
@@ -193,12 +338,11 @@ begin
         message_buffer_write    <= '0';
         valid_out               <= '0';
         msgout_last             <= '0';
-        
         message_buffer  <= message_buffer;
         msg_last_buffer <= msg_last_buffer;
         C <= C;
         blakley_buffer <= blakley_buffer;
-        blakley_b <= blakley_buffer;
+        blakley_b <= blakley_b;
         blakley_a <= blakley_a;        
         
         case state is  
@@ -213,14 +357,16 @@ begin
             when start_state =>
                 counter_rst     <= '1';
                 blakley_reset   <= '1';
-                c_reg_select    <=  2;
+                --c_reg_select    <=  2;
                 C <= std_logic_vector(to_unsigned(1, block_size));
                 
            
             when b1_init_state=>      
-                blakley_buffer_write <= '1';
-                blakley_buffer <= C;
-                blakley_a <= blakley_buffer;
+                --blakley_buffer_write <= '1';
+                --blakley_buffer <= C;
+                --blakley_a <= blakley_buffer;
+                blakley_a <= C;
+                blakley_b <= C;
                 
             when b1_start_state =>
                 counter_dec     <= '1';
@@ -228,7 +374,7 @@ begin
 
             
             when b1_wait_state =>
-                c_reg_select    <=  1;
+                --c_reg_select    <=  1;
                 if blakley_done then
                     C <= blakley_out;        
                 end if;
@@ -240,8 +386,9 @@ begin
                 
             when b2_init_state =>      
                 blakley_buffer_write <= '1';
-                blakley_buffer <= C;
+                --blakley_buffer <= C;
                 blakley_a <= message_buffer;
+                blakley_b <= C;
             
             when b2_start_state =>        
                 a_input_select  <= '1';
@@ -260,7 +407,7 @@ begin
                 blakley_reset   <= '1';
                 
             when finished_state =>
-                C <= std_logic_vector(to_unsigned(1234, c'length)); --OUT TEST
+                --C <= std_logic_vector(to_unsigned(1234, c'length)); --OUT TEST
                 valid_out <='1';    
                 msgout_last <= msg_last_buffer;
                 --rdy <= ready_out;
@@ -271,14 +418,15 @@ begin
                 c_reg_select    <=  2;
         end case;
 end process;
-
-
-Next_State_Logic: process(all) is
+*/
+/*
+FSM: process(all) is
 begin
     if rst then
         next_state <= rst_state;
     else
         if rising_edge(clk) then
+        
             case state is
             when rdy_state =>
                 if (en='1') then
@@ -287,6 +435,11 @@ begin
                     next_state <= next_state;
                 end if;
             when init_state =>
+            
+            
+            
+            
+            
                 next_state <= start_state;       
             
             when start_state =>
@@ -350,3 +503,4 @@ begin
     state <= next_state;
 end process;
 end rtl;
+*/
