@@ -23,7 +23,7 @@ end blakely;
 
 architecture blakelyBehave of blakely is
 
-    signal blakely_done : STD_LOGIC                 := '0';
+    signal blakely_done :  STD_LOGIC                    := '0';
     signal blakely_state : std_logic_vector(2 downto 0) := (others => '0');
    
     type State_Type is (idle, encrypt);
@@ -54,6 +54,10 @@ begin
             when encrypt => if(blakely_done = '1') then
                                 ready_out <= '1';
                                 next_state <= idle;                               
+                            end if;
+                            
+                            if(blakely_done = '0') then
+                                ready_out <= '0';
                             end if;
                             
             when idle =>  if(enable = '1' and blakely_done = '0') then
@@ -97,6 +101,7 @@ begin
                             result <= (others => '0');
                             i := (others => '0');
                             blakely_done <= '0';
+                            
                         elsif(i = unsigned(K)) then
                              result <= R(C_block_size - 1 downto 0);
                              blakely_done <= '1';
