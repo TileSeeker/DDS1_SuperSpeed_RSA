@@ -197,9 +197,9 @@ begin
             message_buffer          <= (others=>'0');
             msg_last_buffer         <= '0';
             C                       <= (others=>'0');
-            blakley_buffer <= (others=>'0');
-            blakley_b <= (others=>'0');
-            blakley_a <= (others=>'0');    
+            blakley_buffer          <= (others=>'0');
+            blakley_b               <= (others=>'0');
+            blakley_a               <= (others=>'0');    
             
             next_state <= rst_state;
            
