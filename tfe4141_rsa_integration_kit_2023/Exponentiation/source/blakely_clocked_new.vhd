@@ -35,65 +35,69 @@ architecture blakelyBehave of blakely is
 begin
 
     ------------------------------------------------------------------------------
-     STATE_MEMORY : process(clk, reset) is
+     STATE_MEMORY : process(all) is --clk, reset
      begin
-        if(reset = '1') then
-            current_state <= idle;
-        elsif (clk ='1') then
-            current_state <= next_state;
-        else 
-            current_state <= next_state;
+        if(rising_edge(clk)) then
+            if(reset = '1') then
+                current_state <= idle;
+            else 
+                current_state <= next_state;
+            end if;
         end if;
      end process STATE_MEMORY;
     ------------------------------------------------------------------------------
     
     ------------------------------------------------------------------------------
-    NEXT_STATE_LOGIC : process(enable, current_state, blakely_done)
-        begin 
-        case(current_state) is
-            when encrypt => if(blakely_done = '1') then
-                                ready_out <= '1';
-                                next_state <= idle;                               
-                            end if;
-                            
-                            if(blakely_done = '0') then
-                                ready_out <= '0';
-                            end if;
-                            
-            when idle =>  if(enable = '1' and blakely_done = '0') then
-                            next_state <= encrypt;
-                          end if;
-                          
-                          if(enable = '0') then
-                             ready_out <= '0';
-                             next_state <= idle;
-                          end if;
-                          
-                          if(blakely_done = '1') then
-                            next_state <= idle;
-                          end if;
-                                  
-           when others =>
-                next_state <= idle;  
-                
-       end case;
+    NEXT_STATE_LOGIC : process(all) is --enable, current_state, blakely_done
+        begin
+        if(rising_edge(clk)) then 
+            case(current_state) is
+                when encrypt => if(blakely_done = '1') then
+                                    ready_out <= '1';
+                                    next_state <= idle;                               
+                                end if;
+                                
+                                if(blakely_done = '0') then
+                                    ready_out <= '0';
+                                end if;
+                                
+                when idle =>  if(enable = '1' and blakely_done = '0') then
+                                next_state <= encrypt;
+                              end if;
+                              
+                              if(enable = '0') then
+                                 ready_out <= '0';
+                                 next_state <= idle;
+                              end if;
+                              
+                              if(blakely_done = '1') then
+                                next_state <= idle;
+                              end if;
+                                      
+               when others =>
+                    next_state <= idle;  
+                    
+           end case;
+      end if;
    end process NEXT_STATE_LOGIC;
     ------------------------------------------------------------------------------
 
     ------------------------------------------------------------------------------
-    BLAKELY : process(clk, reset) is
+    BLAKELY : process(all) is --clk, reset
     
       variable bit_shift_pos         :    integer                                     :=  0;
       variable right_shift           :    std_logic_vector(C_block_size-1 downto 0)   := (others => '0');
       variable and_operation         :    std_logic_vector(C_block_size-1 downto 0)   := std_logic_vector(to_unsigned(1, right_shift'length));
       variable and_result            :    std_logic_vector(C_block_size-1 downto 0)   := (others => '0');
-      variable R                     :    std_logic_vector(C_block_size+3 downto 0)   := (others => '0');
+      variable R                     :    std_logic_vector(C_block_size downto 0)     := (others => '0');
       variable i                     :    unsigned(15 downto 0)  := (others => '0'); 
       
       --variable fstatus      :file_open_status;
       --variable file_line     :line;
-
+        
       begin 
+      
+      if(rising_edge(clk)) then
             case(current_state) is
                 when encrypt =>
                         if(reset = '1') then
@@ -166,6 +170,7 @@ begin
                 i := (others => '0');    
                 blakely_state <= "000" ;
            end case;
+     end if;
            
            
      end process BLAKELY;
