@@ -210,7 +210,7 @@ begin
             counter_rst             <= '0';
             counter_dec             <= '0';
             a_input_select          <= '0';
-            blakley_start           <= '0';
+            blakley_start           <= '1';
             blakley_reset           <= '0';
             c_reg_select            <=  0;
             blakley_buffer_write    <= '0';
@@ -242,6 +242,7 @@ begin
                 when start_state =>
                     counter_rst     <= '1';
                     blakley_reset   <= '1';
+                    blakley_start   <= '1';
                     C <= std_logic_vector(to_unsigned(1, block_size));
                 
                     next_state <= b1_init_state;
@@ -259,6 +260,7 @@ begin
                     next_state <= b1_wait_state;
                     
                 when b1_wait_state =>
+                    blakley_start   <= '1';
                     if (blakley_done='1') then
                         C <= blakley_out;  
                         next_state <= b1_reset_state;
@@ -322,6 +324,33 @@ begin
     state <= next_state;
 end process;
 end rtl;
+
+/*
+architecture dummy_binary of binary is
+type handshake_type is (RECEIVE_STATE, IDLE_STATE, SEND_STATE);
+signal hs_state, next_hs_state: handshake_type := RECEIVE_STATE;
+begin
+
+    HS_STATE_CONTROL: process (clk) is
+    begin
+        if rst then
+        elsif rising_edge(clk) then
+            rdy <= '0';
+            case hs_state is
+                when RECEIVE_STATE =>
+                    if en then
+                        rdy <= '1';
+                        next_hs_state <= IDLE_STATE;
+                    end if;
+                when IDLE_STATE =>
+                when SEND_STATE =>
+                when OTHERS =>
+            end case;
+        end if;
+    end process;
+end architecture dummy_binary;
+*/
+
 
 /*
 Output_Logic: process(all) is
