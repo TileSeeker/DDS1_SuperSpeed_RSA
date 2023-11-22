@@ -37,12 +37,10 @@ begin
     ------------------------------------------------------------------------------
      STATE_MEMORY : process(all) is --clk, reset
      begin
-         if(rising_edge(clk)) then
-             if(reset = '1') then
-                    current_state <= idle;
-             else
-                    current_state <= next_state;
-             end if;
+        if (reset = '1') then
+            current_state <= idle;
+        elsif(rising_edge(clk)) then
+            current_state <= next_state;
          end if;
      end process STATE_MEMORY;
     ------------------------------------------------------------------------------
@@ -50,11 +48,16 @@ begin
     ------------------------------------------------------------------------------
     NEXT_STATE_LOGIC : process(all) is --enable, current_state, blakely_done
         begin
+        
+        if(reset = '1') then
+            next_state <= idle;
+            ready_out <= '0';
+        end if;
+        
         if(rising_edge(clk)) then 
             case(current_state) is
                 when encrypt => if(blakely_done = '1') then
                                     ready_out <= '1';
-                                    next_state <= idle;                               
                                 end if;
                                 
                                 if(blakely_done = '0') then
@@ -65,13 +68,8 @@ begin
                                 next_state <= encrypt;
                               end if;
                               
-                              if(enable = '0' and blakely_done = '0') then
-                                 ready_out <= '0';
+                              if(enable = '0') then
                                  next_state <= idle;
-                              end if;
-                              
-                              if(blakely_done = '1') then
-                                next_state <= idle;
                               end if;
                                       
                when others =>
@@ -166,10 +164,9 @@ begin
            end case;
            
      end if;
-           
-           
+               
      end process BLAKELY;
      
-    ------------------------------------------------------------------------------
+------------------------------------------------------------------------------
     
 end architecture blakelyBehave;
