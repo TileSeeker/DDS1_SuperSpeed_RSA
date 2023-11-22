@@ -173,3 +173,43 @@ begin
     ------------------------------------------------------------------------------
     
 end architecture blakelyBehave;
+
+/*
+architecture dummy_test of blakley is
+    type state_type is (idle, encrypt, done);
+    signal state, next_state: state_type := idle;
+begin
+
+output_control: process() is
+begin
+    case (state) is 
+        when IDLE =>
+            
+        when ENCRYPT =>
+            result <= unsigned(a) * unsigned(b) mod unsigned(n);
+        when DONE =>
+        
+     end case;
+end process;
+
+state_control: process(clk, reset) is
+begin
+    if (reset='1') then
+        next_state <= idle;
+    elsif rising_edge(clk) then
+        next_state <= next_state;
+        case (state) is
+            when IDLE =>
+                
+            
+            when ENCRYPT =>
+                
+ 
+            when DONE =>
+            
+         end case;
+    
+    end if;
+
+end architecture dummy_test;
+*/
