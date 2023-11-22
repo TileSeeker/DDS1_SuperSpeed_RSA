@@ -87,7 +87,7 @@ begin
       variable right_shift           :    std_logic_vector(C_block_size-1 downto 0)   := (others => '0');
       variable and_operation         :    std_logic_vector(C_block_size-1 downto 0)   := std_logic_vector(to_unsigned(1, right_shift'length));
       variable and_result            :    std_logic_vector(C_block_size-1 downto 0)   := (others => '0');
-      variable R                     :    std_logic_vector(C_block_size+5 downto 0)   := (others => '0');
+      variable R                     :    std_logic_vector(C_block_size+3 downto 0)   := (others => '0');
       variable i                     :    unsigned(15 downto 0)  := (others => '0'); 
       
       --variable fstatus      :file_open_status;
@@ -154,6 +154,7 @@ begin
                     result <= (others => '0');
                     i := (others => '0');
                     blakely_done <= '0';
+                    blakely_state <= "000" ;
                  end if;
                  
                  if(blakely_done = '0') then
@@ -162,7 +163,8 @@ begin
                  
             when others => 
                 R := (others => '0');
-                i := (others => '0');                 
+                i := (others => '0');    
+                blakely_state <= "000" ;
            end case;
            
            
