@@ -55,26 +55,66 @@ begin
 	   n <= x"99925173ad65686715385ea800cd28120288fc70a9bc98dd4c90d676f8ff768d"; --std_logic_vector(to_unsigned(123129, n'length));
 	   K <= std_logic_vector(to_unsigned(C_block_size, k'length));
 	   
-	   a <= x"0a23232323232323232323232323232323232323232323232323232323232323"; --std_logic_vector(to_unsigned(1, a'length));
-	   b <= x"0a23232323232323232323232323232323232323232323232323232323232323"; --std_logic_vector(to_unsigned(1, b'length));
+	   a <= x"0000000011111111222222223333333344444444555555556666666677777777"; --std_logic_vector(to_unsigned(1, a'length));
+	   b <= x"0000000011111111222222223333333344444444555555556666666677777777"; --std_logic_vector(to_unsigned(1, b'length));
 	
 	   wait for 10 ns;
 
 	   enable <= '1';
 	   	          
 	   wait until ready_out='1';
-	   assert result = x"24931802b9ead447563ec7f0f3d613270a5dd5f3d3df1457b9857de14da1a750" report "Blakley Calc Failed!" severity failure;
 	  	   
-	   wait for 100 ns;
+	   wait for 10000 ns;
 	   
-	   reset <= '1';
+	   assert result <= x"5f3a4171696ab4e8aefbabb6e786a1449fe8187a1130ad91a0220ab6aebc5ba6" report "Failed";
+	   
+	   wait for 1000 ns;
 
+       enable <= '0';
+	  
+	   reset <= '1';
+	   
+	   wait for 200 ns;
+
+	   reset <= '0';
+	   	   
+	   wait for 2000 ns;
+	   	   
+	   a <= x"8bd9ee778b33d324448f3e7da4599f2995ed107677c219951be78fc6ad6d66e1"; --std_logic_vector(to_unsigned(1, a'length));
+	   b <= x"8bd9ee778b33d324448f3e7da4599f2995ed107677c219951be78fc6ad6d66e1"; 
+	  
+	   wait for 2000 ns;
+	   
+	   enable <= '1';
+
+	   wait until ready_out ='1';
+	   
+	   assert result <= x"791926f8d56aab7416200646de7eae2a183acc44556def87e8662333e39d07b7" report "Failed";
+
+	   wait for 1000 ns; 
+	   
+       enable <= '0';
+	   reset <= '1';
+	   
+	   wait for 200 ns;
+
+	   reset <= '0';
+	   	   
+	   wait for 200 ns;
+	   	   
+	   a <= x"35af3347ca27e90b60d026503503217878fcc8f5f8cead531883ced661849cbd"; 
+	   b <= x"35af3347ca27e90b60d026503503217878fcc8f5f8cead531883ced661849cbd"; 
+	  
 	   wait for 100 ns;
 	   
-	   reset <= '0';
+	   enable <= '1';
+
+	   wait until ready_out ='1';
 	   
-    	   
-       assert false report "Test: OK" severity failure;
+	   assert result <= x"1e24ffdda862cf7d8c0d3be17d002ec4c55c41ad5509201547b6b93fc4f546bd" report "Failed";
+
+	   wait;
+
 	end process stimulus;
 	   
 end tb;
