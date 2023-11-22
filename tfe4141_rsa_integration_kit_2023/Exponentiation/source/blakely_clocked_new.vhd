@@ -33,17 +33,17 @@ architecture blakelyBehave of blakely is
     --file fptr: text;
     
 begin
-
+    
     ------------------------------------------------------------------------------
      STATE_MEMORY : process(all) is --clk, reset
      begin
-        if(rising_edge(clk)) then
-            if(reset = '1') then
-                current_state <= idle;
-            else 
-                current_state <= next_state;
-            end if;
-        end if;
+         if(rising_edge(clk)) then
+             if(reset = '1') then
+                    current_state <= idle;
+             else
+                    current_state <= next_state;
+             end if;
+         end if;
      end process STATE_MEMORY;
     ------------------------------------------------------------------------------
     
@@ -65,7 +65,7 @@ begin
                                 next_state <= encrypt;
                               end if;
                               
-                              if(enable = '0') then
+                              if(enable = '0' and blakely_done = '0') then
                                  ready_out <= '0';
                                  next_state <= idle;
                               end if;
@@ -97,16 +97,18 @@ begin
         
       begin 
       
+       if(reset = '1') then
+            R := (others => '0');
+            result <= (others => '0');
+            i := (others => '0');
+            blakely_done <= '0';
+            blakely_state <= "000" ;
+       end if;
+        
       if(rising_edge(clk)) then
             case(current_state) is
-                when encrypt =>
-                        if(reset = '1') then
-                            R := (others => '0');
-                            result <= (others => '0');
-                            i := (others => '0');
-                            blakely_done <= '0';
-                            
-                        elsif(i = unsigned(K)) then
+                when encrypt =>    
+                        if(i = unsigned(K)) then
                              result <= R(C_block_size - 1 downto 0);
                              blakely_done <= '1';
                              R := (others => '0');
@@ -152,15 +154,7 @@ begin
                                                           
                        end if;
                     
-             when idle =>
-                 if(reset = '1') then
-                    R := (others => '0');
-                    result <= (others => '0');
-                    i := (others => '0');
-                    blakely_done <= '0';
-                    blakely_state <= "000" ;
-                 end if;
-                 
+             when idle =>                 
                  if(blakely_done = '0') then
                     result <= (others => '0');
                  end if;
@@ -170,6 +164,7 @@ begin
                 i := (others => '0');    
                 blakely_state <= "000" ;
            end case;
+           
      end if;
            
            
