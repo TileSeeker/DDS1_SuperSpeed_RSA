@@ -28,14 +28,13 @@ architecture blakelyBehave of blakely is
    
     type State_Type is (idle, encrypt);
     signal current_state, next_state : State_Type;
-           
-    --constant C_FILE_NAME :string  := "C:\tfe4141_rsa_integration_kit_2023\Exponentiation\output.txt";
-    --file fptr: text;
     
 begin
     
+    
+    -- Changes the Blakely current state on rising edge
     ------------------------------------------------------------------------------
-     STATE_MEMORY : process(all) is --clk, reset
+     STATE_MEMORY : process(all) is
      begin
         if (reset = '1') then
             current_state <= idle;
@@ -45,8 +44,9 @@ begin
      end process STATE_MEMORY;
     ------------------------------------------------------------------------------
     
+    -- Changes the Blakely next state on rising edge
     ------------------------------------------------------------------------------
-    NEXT_STATE_LOGIC : process(all) is --enable, current_state, blakely_done
+    NEXT_STATE_LOGIC : process(all) is
         begin
         
         if(reset = '1') then
@@ -80,18 +80,16 @@ begin
    end process NEXT_STATE_LOGIC;
     ------------------------------------------------------------------------------
 
+    -- Implements the Blakely Algorithm
     ------------------------------------------------------------------------------
-    BLAKELY : process(all) is --clk, reset
+    BLAKELY : process(all) is 
     
       variable bit_shift_pos         :    integer                                     :=  0;
       variable right_shift           :    std_logic_vector(C_block_size-1 downto 0)   := (others => '0');
       variable and_operation         :    std_logic_vector(C_block_size-1 downto 0)   := std_logic_vector(to_unsigned(1, right_shift'length));
       variable and_result            :    std_logic_vector(C_block_size-1 downto 0)   := (others => '0');
       variable R                     :    std_logic_vector(C_block_size downto 0)     := (others => '0');
-      variable i                     :    unsigned(15 downto 0)  := (others => '0'); 
-      
-      --variable fstatus      :file_open_status;
-      --variable file_line     :line;
+      variable i                     :    unsigned(15 downto 0)  := (others => '0');  -- Counter for going through 255 bits
         
       begin 
       
@@ -106,17 +104,14 @@ begin
       if(rising_edge(clk)) then
             case(current_state) is
                 when encrypt =>    
+                        -- Blakely finished when all 255 bits have been traversed
                         if(i = unsigned(K)) then
                              result <= R(C_block_size - 1 downto 0);
                              blakely_done <= '1';
                              R := (others => '0');
                              i := (others => '0');
-                             --file_close(fptr);
                         else
-                            --file_open(fstatus, fptr, C_FILE_NAME, append_mode);
-                            --hwrite(file_line, R, left, 0);
-                            --writeline(fptr, file_line);
-                                                    
+                        --  Steps in the Blakely algorithm are splitted, and performed at diffrent rising edges     
                             if(blakely_state = "000") then
                                 bit_shift_pos   := to_integer(unsigned(unsigned(K)-i-1));
                                 right_shift     := std_logic_vector(shift_right(unsigned(a), bit_shift_pos));
