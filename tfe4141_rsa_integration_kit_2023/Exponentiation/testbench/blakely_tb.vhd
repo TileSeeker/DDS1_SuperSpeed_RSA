@@ -49,7 +49,9 @@ begin
       end process p_CLK_GEN; 
 		
     stimulus: process is
-              
+    
+    -- Test encryption/decruption of different combinations of a and b, could be expanded with more alternatives
+    
      begin
 	   
 	   n <= x"99925173ad65686715385ea800cd28120288fc70a9bc98dd4c90d676f8ff768d"; --std_logic_vector(to_unsigned(123129, n'length));
@@ -58,6 +60,14 @@ begin
 	   a <= x"0000000011111111222222223333333344444444555555556666666677777777"; --std_logic_vector(to_unsigned(1, a'length));
 	   b <= x"0000000011111111222222223333333344444444555555556666666677777777"; --std_logic_vector(to_unsigned(1, b'length));
 	
+	   wait for 10 ns;
+	   
+	   reset <= '1';
+	   
+	   wait for 10 ns;
+	   
+	   reset <= '0';
+	   
 	   wait for 10 ns;
 
 	   enable <= '1';
@@ -71,33 +81,74 @@ begin
 	   wait for 100 ns;
 
        enable <= '0';
-	  
+       	  
 	   reset <= '1';
 	   
 	   wait for 200 ns;
 
 	   reset <= '0';
-	   
+	   	   
 	   wait for 200 ns;
 	   	   
-	   a <= x"0000000000000000000000000000000000000000000000000000000000000001"; --std_logic_vector(to_unsigned(1, a'length));
-	   b <= x"0000000000000000000000000000000000000000000000000000000000000001"; 
+	   a <= x"8bd9ee778b33d324448f3e7da4599f2995ed107677c219951be78fc6ad6d66e1"; --std_logic_vector(to_unsigned(1, a'length));
+	   b <= x"8bd9ee778b33d324448f3e7da4599f2995ed107677c219951be78fc6ad6d66e1"; 
 	  
 	   wait for 200 ns;
 	   
 	   enable <= '1';
-	   
+
 	   wait until ready_out ='1';
-	   	  
-	   wait for 1000 ns; 
-	   	   
+	   
+	   assert result <= x"791926f8d56aab7416200646de7eae2a183acc44556def87e8662333e39d07b7" report "Failed";
+
+	   wait for 100 ns; 
+	   
 	   enable <= '0';
-	  
 	   reset <= '1';
 	   
 	   wait for 100 ns;
+
+	   reset <= '0';
+	   	   
+	   wait for 200 ns;
+	   	   
+	   a <= x"35af3347ca27e90b60d026503503217878fcc8f5f8cead531883ced661849cbd"; 
+	   b <= x"35af3347ca27e90b60d026503503217878fcc8f5f8cead531883ced661849cbd"; 
+	  
+	   wait for 100 ns;
 	   
-	   assert false report "Test Done" severity Failure;
+	   enable <= '1';
+
+	   wait until ready_out ='1';
+	   
+	   assert result <= x"1e24ffdda862cf7d8c0d3be17d002ec4c55c41ad5509201547b6b93fc4f546bd" report "Failed";
+	   
+	   wait for 100 ns;
+
+       enable <= '0';
+       
+       wait for 100 ns;
+       	  
+	   reset <= '1';
+	   
+	   wait for 200 ns;
+
+	   reset <= '0';
+	   	   
+	   wait for 100 ns;
+	   	   
+	   a <= x"8bd9ee778b33d324448f3e7da4599f2995ed107677c219951be78fc6ad6d66e1"; --std_logic_vector(to_unsigned(1, a'length));
+	   b <= x"8bd9ee778b33d324448f3e7da4599f2995ed107677c219951be78fc6ad6d66e1"; 
+	  
+	   wait for 100 ns;
+	   
+	   enable <= '1';
+
+	   wait until ready_out ='1';
+	   
+	   assert result <= x"791926f8d56aab7416200646de7eae2a183acc44556def87e8662333e39d07b7" report "Failed";
+
+	   wait;
 
 	end process stimulus;
 	   
