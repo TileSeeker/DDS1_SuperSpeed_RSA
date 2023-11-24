@@ -96,12 +96,16 @@ begin
     end if;
 end process;
 
---e_index_value assignment
+------------------------------------------------
+    --Concurrent Assignments
+------------------------------------------------
 e_ext <= ('0' & e);
 e_index_value <= e_ext(count);
 blakley_modulo <= N;
 
-
+------------------------------------------------
+    --State Machine
+------------------------------------------------
 FSM: process(all) is
 begin
     if rst then
